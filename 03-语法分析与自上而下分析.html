@@ -86,13 +86,38 @@ hr { border: none; border-top: 2px solid var(--border); margin: 2rem 0; }
 2. 检查输入中的语法（可能包括词法）错误，并调用出错处理器进行适当处理</p>
 <p>语法分析以词法分析的输出（单词符号流）作为输入，依据语言的语法规则分析程序的语法结构。语法规则使用<strong>上下文无关文法</strong>（CFG）的子集——LL文法或LR文法来描述，语法分析的自动机模型是<strong>下推自动机</strong>。</p>
 <h4 id="112">1.1.2 语法错误的处理方法</h4>
-<p><strong>源程序中可能出现的四类错误</strong>：
-| 错误类型 | 示例 | 特征 |
-|----------|------|------|
-| 词法错误 | <code>intege</code>（拼写错）、<code>@</code>（非法字符）| 非法字符或拼写错误 |
-| 语法错误 | 少分号、<code>begin/end</code> 不配对 | 语法结构出错 |
-| 静态语义错误 | <code>x:=a+b</code>（类型不匹配） | 类型不一致、参数不匹配 |
-| 动态语义错误 | <code>a:=a/b</code>（除数为零）、无穷递归 | 运行时错误（逻辑错误） |</p>
+<p><strong>源程序中可能出现的四类错误</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>错误类型</th>
+<th>示例</th>
+<th>特征</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>词法错误</td>
+<td><code>intege</code>（拼写错）、<code>@</code>（非法字符）</td>
+<td>非法字符或拼写错误</td>
+</tr>
+<tr>
+<td>语法错误</td>
+<td>少分号、<code>begin/end</code> 不配对</td>
+<td>语法结构出错</td>
+</tr>
+<tr>
+<td>静态语义错误</td>
+<td><code>x:=a+b</code>（类型不匹配）</td>
+<td>类型不一致、参数不匹配</td>
+</tr>
+<tr>
+<td>动态语义错误</td>
+<td><code>a:=a/b</code>（除数为零）、无穷递归</td>
+<td>运行时错误（逻辑错误）</td>
+</tr>
+</tbody>
+</table>
 <p>大多数错误的诊断和恢复集中在语法分析阶段，因为大多数错误是语法错误，且语法分析方法能以非常有效的方式诊断语法错误。</p>
 <p><strong>语法错误处理的目标</strong>：
 - 清楚而准确地报告错误（地点正确、不漏报、不错报、不多报）
@@ -162,7 +187,9 @@ $$E \Rightarrow -E \Rightarrow -(E) \Rightarrow -(E+E) \Rightarrow -(id+E) \Righ
 <p><strong>改写示例</strong>（运算符优先级与结合性）：</p>
 <pre class="codehilite"><code>二义文法:                     非二义文法:
 E → E + E | E * E | (E)      E → E + T | T
+
   | -E | id                   T → T * F | F
+
                               F → (E) | -F | id
 </code></pre>
 
