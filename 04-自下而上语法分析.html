@@ -89,15 +89,19 @@ $$S \Rightarrow^* \alpha A\delta,\quad A \Rightarrow^+ \beta$$
 则称 $\beta$ 是句型 $\alpha\beta\delta$ 相对于 $A$ 的<strong>短语</strong>。</p>
 <p>特别的，若有 $A \to \beta$，则称 $\beta$ 是句型 $\alpha\beta\delta$ 相对于产生式 $A \to \beta$ 的<strong>直接短语</strong>。</p>
 <p>一个句型的最左直接短语被称为<strong>句柄</strong>（Handle）。</p>
-<p><strong>直观理解</strong>：
-- 句型是一个完整结构，短语是句型中的某部分
-- 在语法树中，以某非终结符为根的两代以上的子树的所有末端结点从左到右排列即为一个短语
-- 如果子树只有两代，则该短语是直接短语</p>
+<p><strong>直观理解</strong>：</p>
+<ul>
+<li>句型是一个完整结构，短语是句型中的某部分</li>
+<li>在语法树中，以某非终结符为根的两代以上的子树的所有末端结点从左到右排列即为一个短语</li>
+<li>如果子树只有两代，则该短语是直接短语</li>
+</ul>
 <p><strong>示例</strong>：对于文法 $E \to T \mid E+T$，$T \to F \mid T*F$，$F \to (E) \mid i$
-和句型 $i_1*i_2+i_3$：
-- 短语：$i_1$、$i_2$、$i_3$、$i_1*i_2$、$i_1*i_2+i_3$
-- 直接短语：$i_1$、$i_2$、$i_3$
-- 句柄：$i_1$（最左直接短语）</p>
+和句型 $i_1*i_2+i_3$：</p>
+<ul>
+<li>短语：$i_1$、$i_2$、$i_3$、$i_1*i_2$、$i_1*i_2+i_3$</li>
+<li>直接短语：$i_1$、$i_2$、$i_3$</li>
+<li>句柄：$i_1$（最左直接短语）</li>
+</ul>
 <h4 id="113-">1.1.3 移进-归约分析</h4>
 <p><strong>基本思想</strong>：用一个寄存符号的先进后出栈，把输入符号一个一个地<strong>移进</strong>到栈里，当栈顶形成某个产生式的候选式（句柄）时，即把栈顶的这一部分<strong>归约</strong>为该产生式的左部符号。</p>
 <p><strong>分析过程示例</strong>（文法：$S \to aAcBe$，$A \to b \mid Ab$，$B \to d$，输入：$abbcde$）：</p>
@@ -162,31 +166,41 @@ $$S \Rightarrow^* \alpha A\delta,\quad A \Rightarrow^+ \beta$$
 </tr>
 </tbody>
 </table>
-<p>两个关键发现：
-1. <strong>句柄总是在栈顶形成</strong>（最左归约）
-2. 栈中保留的总是一个右句型的前缀（加上若干终结符形成句型），称为<strong>活前缀</strong></p>
+<p>两个关键发现：</p>
+<ol>
+<li><strong>句柄总是在栈顶形成</strong>（最左归约）</li>
+<li>栈中保留的总是一个右句型的前缀（加上若干终结符形成句型），称为<strong>活前缀</strong></li>
+</ol>
 <h4 id="114">1.1.4 规范归约</h4>
-<p><strong>定义3.10</strong>：序列 $\alpha_n, \alpha_{n-1}, \ldots, \alpha_0$ 是 $\alpha$ 的一个规范归约，如果满足：
-1. $\alpha_n = \alpha$
-2. $\alpha_0 = S$（文法的开始符号）
-3. 对任何 $i$，$\alpha_{i-1}$ 是从 $\alpha_i$ 经把句柄替换成为相应产生式左部符号而得到的</p>
+<p><strong>定义3.10</strong>：序列 $\alpha_n, \alpha_{n-1}, \ldots, \alpha_0$ 是 $\alpha$ 的一个规范归约，如果满足：</p>
+<ol>
+<li>$\alpha_n = \alpha$</li>
+<li>$\alpha_0 = S$（文法的开始符号）</li>
+<li>对任何 $i$，$\alpha_{i-1}$ 是从 $\alpha_i$ 经把句柄替换成为相应产生式左部符号而得到的</li>
+</ol>
 <p><strong>规范归约是最右推导的逆过程</strong> — 由规范推导推出的句型称为<strong>规范句型</strong>。</p>
 <h3 id="12-lr">1.2 LR分析概述</h3>
 <h4 id="121-lr">1.2.1 LR分析法的基本思想</h4>
-<p>LR分析法由 Knuth 于 1965 年提出，核心思想是：
-- <strong>"历史"</strong>：已移入符号栈的内容
-- <strong>"展望"</strong>：根据产生式推测未来可能遇到的输入符号
-- <strong>"现实"</strong>：当前的输入符号
-- 将"历史"和"展望"综合抽象成<strong>状态</strong>，由栈顶的状态和现行的输入符号唯一确定每一步工作</p>
+<p>LR分析法由 Knuth 于 1965 年提出，核心思想是：</p>
+<ul>
+<li><strong>"历史"</strong>：已移入符号栈的内容</li>
+<li><strong>"展望"</strong>：根据产生式推测未来可能遇到的输入符号</li>
+<li><strong>"现实"</strong>：当前的输入符号</li>
+<li>将"历史"和"展望"综合抽象成<strong>状态</strong>，由栈顶的状态和现行的输入符号唯一确定每一步工作</li>
+</ul>
 <h4 id="122-lr">1.2.2 LR分析器的结构</h4>
-<p>LR分析器的核心是一张<strong>分析表</strong>，包含两部分：
-- <strong>ACTION[s, a]</strong>：当状态 $s$ 面临输入符号 $a$ 时，应采取什么动作
-- <strong>GOTO[s, X]</strong>：状态 $s$ 面对文法符号 $X$ 时，下一状态是什么</p>
-<p><strong>ACTION 的四种动作</strong>：
-1. <strong>移进（shift s'）</strong>：把 $(s, a)$ 的下一状态 $s'$ 和输入符号 $a$ 推进栈，读入下一输入符号
-2. <strong>归约（reduce by $A \to \beta$）</strong>：弹出栈顶 $|\beta|$ 个状态和符号，暴露当前栈顶状态 $s'$，将 $(s', A)$ 的下一状态和 $A$ 推进栈
-3. <strong>接受（accept）</strong>：宣布分析成功
-4. <strong>报错（error）</strong>：报告语法错误</p>
+<p>LR分析器的核心是一张<strong>分析表</strong>，包含两部分：</p>
+<ul>
+<li><strong>ACTION[s, a]</strong>：当状态 $s$ 面临输入符号 $a$ 时，应采取什么动作</li>
+<li><strong>GOTO[s, X]</strong>：状态 $s$ 面对文法符号 $X$ 时，下一状态是什么</li>
+</ul>
+<p><strong>ACTION 的四种动作</strong>：</p>
+<ol>
+<li><strong>移进（shift s'）</strong>：把 $(s, a)$ 的下一状态 $s'$ 和输入符号 $a$ 推进栈，读入下一输入符号</li>
+<li><strong>归约（reduce by $A \to \beta$）</strong>：弹出栈顶 $|\beta|$ 个状态和符号，暴露当前栈顶状态 $s'$，将 $(s', A)$ 的下一状态和 $A$ 推进栈</li>
+<li><strong>接受（accept）</strong>：宣布分析成功</li>
+<li><strong>报错（error）</strong>：报告语法错误</li>
+</ol>
 <h4 id="123-lr35">1.2.3 LR分析算法（算法3.5）</h4>
 <pre class="codehilite"><code>初始格局: (#0, ω#, 移进)，ip 指向 ω# 中的第一个终结符
 loop
@@ -362,26 +376,34 @@ end loop;
 <h3 id="13-lr0">1.3 LR(0)项目集规范族</h3>
 <h4 id="131">1.3.1 活前缀</h4>
 <p><strong>定义</strong>：出现在移进-归约分析器栈中的右句型的前缀，被称为文法 $G$ 的<strong>活前缀</strong>（viable prefix）。</p>
-<p>活前缀的两个要素：
-1. 是右句型的前缀
-2. 已在分析栈中</p>
+<p>活前缀的两个要素：</p>
+<ol>
+<li>是右句型的前缀</li>
+<li>已在分析栈中</li>
+</ol>
 <p>即：活前缀 + 若干剩余输入（不在栈中）$\Rightarrow$ 右句型。</p>
 <h4 id="132-lr0">1.3.2 LR(0)项目</h4>
 <p><strong>定义</strong>：一个 LR(0)项目（简称项目）是这样一个产生式，在它右部的某个位置有一个点 <code>.</code>。对于 $A \to \varepsilon$，它仅有一个项目 $A \to .$</p>
-<p><strong>项目的类型</strong>：
-- $A \to \alpha.a\beta$：<strong>移进项目</strong>（$a$ 是终结符，圆点后是终结符）
-- $A \to \alpha.B\beta$：<strong>待约项目</strong>（$B$ 是非终结符，圆点后是非终结符）
-- $A \to \alpha.$：<strong>归约项目</strong>（圆点在最后）
-- $S' \to S.$：<strong>接受项目</strong></p>
+<p><strong>项目的类型</strong>：</p>
+<ul>
+<li>$A \to \alpha.a\beta$：<strong>移进项目</strong>（$a$ 是终结符，圆点后是终结符）</li>
+<li>$A \to \alpha.B\beta$：<strong>待约项目</strong>（$B$ 是非终结符，圆点后是非终结符）</li>
+<li>$A \to \alpha.$：<strong>归约项目</strong>（圆点在最后）</li>
+<li>$S' \to S.$：<strong>接受项目</strong></li>
+</ul>
 <h4 id="133">1.3.3 拓广文法</h4>
-<p>为使最终构造的 DFA 状态集中具有<strong>唯一初态</strong>和<strong>唯一终态</strong>，对原文法 $G$ 构造拓广文法 $G' = G \cup \{S' \to S\}$。
-- $S' \to .S$ 是识别 $S$ 的初态
-- $S' \to S.$ 是识别 $S$ 的终态（唯一的接受态）</p>
+<p>为使最终构造的 DFA 状态集中具有<strong>唯一初态</strong>和<strong>唯一终态</strong>，对原文法 $G$ 构造拓广文法 $G' = G \cup \{S' \to S\}$。</p>
+<ul>
+<li>$S' \to .S$ 是识别 $S$ 的初态</li>
+<li>$S' \to S.$ 是识别 $S$ 的终态（唯一的接受态）</li>
+</ul>
 <h4 id="134-closure-go">1.3.4 CLOSURE 和 GO 函数</h4>
-<p><strong>CLOSURE(I)</strong>（闭包计算）：
-1. $I$ 的任何项目都属于 CLOSURE($I$)
-2. 若 $A \to \alpha \cdot B\beta$ 属于 CLOSURE($I$)，对任何关于 $B$ 的产生式 $B \to \gamma$，项目 $B \to \cdot\gamma$ 也属于 CLOSURE($I$)
-3. 重复直至不再增大</p>
+<p><strong>CLOSURE(I)</strong>（闭包计算）：</p>
+<ol>
+<li>$I$ 的任何项目都属于 CLOSURE($I$)</li>
+<li>若 $A \to \alpha \cdot B\beta$ 属于 CLOSURE($I$)，对任何关于 $B$ 的产生式 $B \to \gamma$，项目 $B \to \cdot\gamma$ 也属于 CLOSURE($I$)</li>
+<li>重复直至不再增大</li>
+</ol>
 <p><strong>GO(I, X)</strong>（状态转移函数）：
 $$GO(I, X) = CLOSURE(J)$$
 其中 $J = \{\text{形如 } A \to \alpha X\cdot\beta \mid A \to \alpha\cdot X\beta \in I\}$</p>
@@ -401,14 +423,18 @@ END
 <p>转换函数 GO 把项目集连接成一个 DFA 转换图——即<strong>识别活前缀的 DFA</strong>。</p>
 <h4 id="136">1.3.6 有效项目</h4>
 <p>项目 $A \to \beta_1.\beta_2$ 对活前缀 $\alpha\beta_1$ 是<strong>有效</strong>的，条件是存在规范推导。在任何时候，分析栈中的活前缀的有效项目集正是栈顶状态所代表的那个集合。</p>
-<p><strong>有效项目的意义</strong>：
-- 到目前为止分析是正确的
-- 指导下一步分析：可移进项指导移进，可归约项指导归约</p>
+<p><strong>有效项目的意义</strong>：</p>
+<ul>
+<li>到目前为止分析是正确的</li>
+<li>指导下一步分析：可移进项指导移进，可归约项指导归约</li>
+</ul>
 <h3 id="14-lr0">1.4 LR(0)分析表的构造</h3>
 <h4 id="141-lr0">1.4.1 LR(0)文法的判定</h4>
-<p>若一个文法 $G$ 的拓广文法 $G'$ 的识别活前缀的自动机中的每个状态（项目集）<strong>不存在</strong>下述情况：
-1. 既含移进项目又含归约项目（移进/归约冲突）
-2. 含有多个归约项目（归约/归约冲突）</p>
+<p>若一个文法 $G$ 的拓广文法 $G'$ 的识别活前缀的自动机中的每个状态（项目集）<strong>不存在</strong>下述情况：</p>
+<ol>
+<li>既含移进项目又含归约项目（移进/归约冲突）</li>
+<li>含有多个归约项目（归约/归约冲突）</li>
+</ol>
 <p>则称 $G$ 是一个 <strong>LR(0)文法</strong>。</p>
 <h4 id="142-lr0">1.4.2 LR(0)分析表的构造算法</h4>
 <pre class="codehilite"><code>1. 若项目 A→α·aβ 属于 Ik 且 GO(Ik, a) = Ij（a 为终结符），则置 ACTION[k, a] = sj
@@ -421,25 +447,33 @@ END
 <h3 id="15-slr1">1.5 SLR(1)分析</h3>
 <h4 id="151-slr1">1.5.1 SLR(1)的改进</h4>
 <p>LR(0)对所有终结符都无条件归约，导致很多文法存在冲突。SLR(1)的改进在于：只在<strong>FOLLOW(A)</strong>中的终结符出现时才进行归约。</p>
-<p><strong>SLR(1)分析表的构造</strong>（与 LR(0)的区别在第2条）：
-1. 移进规则相同
-2. 若项目 $A \to \alpha.$ 属于 $I_k$，则对每个 $a \in FOLLOW(A)$，置 $ACTION[k, a] = rj$（而非对所有终结符）
-3. 接受规则相同
-4. GOTO规则相同</p>
+<p><strong>SLR(1)分析表的构造</strong>（与 LR(0)的区别在第2条）：</p>
+<ol>
+<li>移进规则相同</li>
+<li>若项目 $A \to \alpha.$ 属于 $I_k$，则对每个 $a \in FOLLOW(A)$，置 $ACTION[k, a] = rj$（而非对所有终结符）</li>
+<li>接受规则相同</li>
+<li>GOTO规则相同</li>
+</ol>
 <h4 id="152-slr1">1.5.2 非 SLR(1)文法</h4>
-<p><strong>悬空 else 文法不是 SLR(1)</strong>：
-- 经过路径 $iCtS$ 的状态中存在移进/归约冲突
-- 因为 $e$ 属于 $FOLLOW(S')$，冲突无法解决</p>
-<p><strong>非二义但非 SLR(1)的文法</strong>：
-- 例如 $S \to L=R \mid R$，$L \to *R \mid id$，$R \to L$
-- 在 $I_4$ 中存在移进/归约冲突，且 $=$ 属于 $FOLLOW(R)$，故不是 SLR(1)
-- 解决方法：增加向前看符号个数（LR(2)）</p>
+<p><strong>悬空 else 文法不是 SLR(1)</strong>：</p>
+<ul>
+<li>经过路径 $iCtS$ 的状态中存在移进/归约冲突</li>
+<li>因为 $e$ 属于 $FOLLOW(S')$，冲突无法解决</li>
+</ul>
+<p><strong>非二义但非 SLR(1)的文法</strong>：</p>
+<ul>
+<li>例如 $S \to L=R \mid R$，$L \to *R \mid id$，$R \to L$</li>
+<li>在 $I_4$ 中存在移进/归约冲突，且 $=$ 属于 $FOLLOW(R)$，故不是 SLR(1)</li>
+<li>解决方法：增加向前看符号个数（LR(2)）</li>
+</ul>
 <h3 id="16">1.6 二义性文法的应用</h3>
 <p><strong>定理</strong>：任何二义文法决不是 LR 文法。</p>
-<p>然而，二义文法有优点：
-- 比非二义文法更简短、更自然
-- 分析表包含的状态更少（消除了单非产生式 $E \to T$ 和 $T \to F$）
-- 改变算符的优先级或结合规则无需改变文法</p>
+<p>然而，二义文法有优点：</p>
+<ul>
+<li>比非二义文法更简短、更自然</li>
+<li>分析表包含的状态更少（消除了单非产生式 $E \to T$ 和 $T \to F$）</li>
+<li>改变算符的优先级或结合规则无需改变文法</li>
+</ul>
 <p><strong>YACC 的处理方法</strong>：使用二义文法 + 为文法符号规定优先级和结合性来解决冲突。</p>
 <pre class="codehilite"><code>%left '+'
 %left '*'
@@ -456,9 +490,11 @@ END
 辅助函数部分
 </code></pre>
 
-<p><strong>利用 YACC 的关键两点</strong>：
-1. YACC 提供什么形式的产生式，如何设计文法
-2. YACC 提供什么样的机制支持语义动作的嵌入</p>
+<p><strong>利用 YACC 的关键两点</strong>：</p>
+<ol>
+<li>YACC 提供什么形式的产生式，如何设计文法</li>
+<li>YACC 提供什么样的机制支持语义动作的嵌入</li>
+</ol>
 <h2 id="_2">二、相关真题与解析</h2>
 <h3 id="12022-a">题目1（来源：2022年 试题A）</h3>
 <p><strong>原题：</strong> 计算题——已知文法 $G$ 为：$A \to B+A \mid B$，$B \to C*B \mid C$，$C \to num$
@@ -467,18 +503,22 @@ END
 <p><strong>解析/答案：</strong></p>
 <p><strong>(1) 构造识别活前缀的 DFA</strong></p>
 <p>首先构造拓广文法：$A' \to A$，加入产生式。</p>
-<p>计算项目集规范族：
-- $I_0 = CLOSURE(\{A' \to .A\}) = \{A' \to .A, A \to .B+A, A \to .B, B \to .C*B, B \to .C, C \to .num\}$
-- $I_1 = GO(I_0, A) = \{A' \to A.\}$
-- $I_2 = GO(I_0, B) = \{A \to B.+A, A \to B.\}$
-- $I_3 = GO(I_0, C) = \{B \to C.*B, B \to C.\}$
-- $I_4 = GO(I_0, num) = \{C \to num.\}$
-- ... 继续计算 GO</p>
+<p>计算项目集规范族：</p>
+<ul>
+<li>$I_0 = CLOSURE(\{A' \to .A\}) = \{A' \to .A, A \to .B+A, A \to .B, B \to .C*B, B \to .C, C \to .num\}$</li>
+<li>$I_1 = GO(I_0, A) = \{A' \to A.\}$</li>
+<li>$I_2 = GO(I_0, B) = \{A \to B.+A, A \to B.\}$</li>
+<li>$I_3 = GO(I_0, C) = \{B \to C.*B, B \to C.\}$</li>
+<li>$I_4 = GO(I_0, num) = \{C \to num.\}$</li>
+<li>... 继续计算 GO</li>
+</ul>
 <p><strong>(2) 构造 SLR(1) 分析表</strong></p>
-<p>首先计算 FOLLOW 集：
-- $FOLLOW(A) = \{\#\}$
-- $FOLLOW(B) = \{+, \#\}$
-- $FOLLOW(C) = \{*, +, \#\}$</p>
+<p>首先计算 FOLLOW 集：</p>
+<ul>
+<li>$FOLLOW(A) = \{\#\}$</li>
+<li>$FOLLOW(B) = \{+, \#\}$</li>
+<li>$FOLLOW(C) = \{*, +, \#\}$</li>
+</ul>
 <p>然后根据 DFA 和 FOLLOW 集构造 ACTION 和 GOTO 表。</p>
 <hr />
 <h3 id="22022-a">题目2（来源：2022年 试题A）</h3>

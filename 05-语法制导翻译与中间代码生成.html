@@ -85,20 +85,26 @@ hr { border: none; border-top: 2px solid var(--border); margin: 2rem 0; }
 <li><strong>语法</strong>：语言的结构，即语言的"样子" —— 是指语言结构是否正确的规则</li>
 <li><strong>语义</strong>：附着于语言结构上的实际含义，即语言的"意义" —— 规定结构正确的句子所表示的意思是否合法</li>
 </ul>
-<p>关键认识：
-- 语义不能离开语法独立存在
-- 语义远比语法复杂
-- 同一语言结构可包含多种含义，不同语言结构可表示相同含义
-- 语法与语义之间没有明确的界线</p>
-<p><strong>语义分析的两个作用</strong>：
-1. 检查结构正确的句子所表示的意思是否合法
-2. 执行规定的语义动作：表达式求值、符号表填写、中间代码生成等</p>
+<p>关键认识：</p>
+<ul>
+<li>语义不能离开语法独立存在</li>
+<li>语义远比语法复杂</li>
+<li>同一语言结构可包含多种含义，不同语言结构可表示相同含义</li>
+<li>语法与语义之间没有明确的界线</li>
+</ul>
+<p><strong>语义分析的两个作用</strong>：</p>
+<ol>
+<li>检查结构正确的句子所表示的意思是否合法</li>
+<li>执行规定的语义动作：表达式求值、符号表填写、中间代码生成等</li>
+</ol>
 <h4 id="112">1.1.2 语法制导翻译的基本思想</h4>
 <p><strong>语法制导翻译</strong>（Syntax-Directed Translation, SDT）是处理语义的基本方法。它以语法分析为基础，伴随语法分析的各个步骤，执行相应的语义动作。</p>
-<p><strong>具体方法</strong>：
-- 将文法符号所代表的语言结构的意思，用附着于该文法符号的<strong>属性</strong>表示
-- 用<strong>语义规则</strong>规定产生式所代表的语言结构之间的关系（即属性之间的关系）
-- 在语法分析的适当时刻执行附着在对应产生式上的语义规则</p>
+<p><strong>具体方法</strong>：</p>
+<ul>
+<li>将文法符号所代表的语言结构的意思，用附着于该文法符号的<strong>属性</strong>表示</li>
+<li>用<strong>语义规则</strong>规定产生式所代表的语言结构之间的关系（即属性之间的关系）</li>
+<li>在语法分析的适当时刻执行附着在对应产生式上的语义规则</li>
+</ul>
 <h3 id="12">1.2 属性文法</h3>
 <h4 id="121">1.2.1 属性的定义</h4>
 <p><strong>定义4.1</strong>：对于产生式 $A \to \alpha$（$\alpha = X_1X_2\ldots X_n$），其语义规则可以表示为关于属性的函数：
@@ -107,11 +113,15 @@ $$b := f(c_1, c_2, \ldots, c_k)$$</p>
 例如：$E.val$（值）、$E.type$（类型）、$E.code$（代码序列）、$E.place$（存储空间）</p>
 <h4 id="122">1.2.2 综合属性与继承属性</h4>
 <p><strong>综合属性（Synthesized Attribute）</strong>：
-若 $b$ 是 $A$ 的属性，$c_1, c_2, \ldots, c_k$ 是 $\alpha$ 中文法符号的属性或 $A$ 的其他属性，则称 $b$ 是 $A$ 的<strong>综合属性</strong>。
-- 综合属性自下而上计算（取决于孩子的属性）</p>
+若 $b$ 是 $A$ 的属性，$c_1, c_2, \ldots, c_k$ 是 $\alpha$ 中文法符号的属性或 $A$ 的其他属性，则称 $b$ 是 $A$ 的<strong>综合属性</strong>。</p>
+<ul>
+<li>综合属性自下而上计算（取决于孩子的属性）</li>
+</ul>
 <p><strong>继承属性（Inherited Attribute）</strong>：
-若 $b$ 是 $\alpha$ 中某文法符号 $X_i$ 的属性，$c_1, c_2, \ldots, c_k$ 是 $A$ 的属性或 $\alpha$ 中其他文法符号的属性，则称 $b$ 是 $X_i$ 的<strong>继承属性</strong>。
-- 继承属性自上而下计算（取决于父亲的属性、兄弟的属性）</p>
+若 $b$ 是 $\alpha$ 中某文法符号 $X_i$ 的属性，$c_1, c_2, \ldots, c_k$ 是 $A$ 的属性或 $\alpha$ 中其他文法符号的属性，则称 $b$ 是 $X_i$ 的<strong>继承属性</strong>。</p>
+<ul>
+<li>继承属性自上而下计算（取决于父亲的属性、兄弟的属性）</li>
+</ul>
 <p><strong>属性依赖关系</strong>：属性之间的依赖关系实质上反映了属性计算的先后次序——所有 $c_i$ 被计算之后才能计算属性 $b$。</p>
 <h4 id="123">1.2.3 语义规则的两种形式</h4>
 <table>
@@ -137,29 +147,37 @@ $$b := f(c_1, c_2, \ldots, c_k)$$</p>
 </table>
 <p>二者作用等价——语法制导定义是算法，翻译方案是程序实现。</p>
 <h4 id="124">1.2.4 注释分析树</h4>
-<p>将属性附着在分析树对应文法符号上，形成注释分析树。从注释分析树可以看出：
-- 继承属性是<strong>自上而下</strong>计算的
-- 综合属性是<strong>自下而上</strong>计算的</p>
+<p>将属性附着在分析树对应文法符号上，形成注释分析树。从注释分析树可以看出：</p>
+<ul>
+<li>继承属性是<strong>自上而下</strong>计算的</li>
+<li>综合属性是<strong>自下而上</strong>计算的</li>
+</ul>
 <h4 id="125-lr">1.2.5 LR分析中的语法制导翻译</h4>
-<p>LR分析中的语法制导翻译是对LR语法分析的扩充：
-1. <strong>扩充LR分析器功能</strong>：当执行归约产生式的动作时，也执行产生式对应的语义动作。限制语义动作仅能放在产生式右部的最右边
-2. <strong>扩充分析栈</strong>：增加一个与分析栈并列的<strong>语义栈</strong>，用于存放分析栈中文法符号所对应的属性值</p>
+<p>LR分析中的语法制导翻译是对LR语法分析的扩充：</p>
+<ol>
+<li><strong>扩充LR分析器功能</strong>：当执行归约产生式的动作时，也执行产生式对应的语义动作。限制语义动作仅能放在产生式右部的最右边</li>
+<li><strong>扩充分析栈</strong>：增加一个与分析栈并列的<strong>语义栈</strong>，用于存放分析栈中文法符号所对应的属性值</li>
+</ol>
 <p><strong>示例</strong>：$E \to E_1 + E_2$，对应的语义动作为 <code>val[top] := val[top] + val[top+2]</code></p>
 <h3 id="13">1.3 中间代码</h3>
 <h4 id="131">1.3.1 中间代码的作用与特性</h4>
-<p>中间代码是编译器前端与后端的<strong>分水岭</strong>。一个好的中间代码应具备：
-- 便于语法制导翻译
-- 既与机器指令的结构相近，又与具体机器无关</p>
+<p>中间代码是编译器前端与后端的<strong>分水岭</strong>。一个好的中间代码应具备：</p>
+<ul>
+<li>便于语法制导翻译</li>
+<li>既与机器指令的结构相近，又与具体机器无关</li>
+</ul>
 <h4 id="132">1.3.2 后缀式（逆波兰表示）</h4>
 <p>操作数在前，操作符紧随其后，无需用括号限制运算的优先级和结合性。</p>
 <p>例如：算术表达式 $3+5+8$ 的后缀式为 $3\ 5 + 8 +$</p>
 <p><strong>后缀式计算算法</strong>：操作数进栈，遇到算符时弹出操作数、计算、将结果进栈。最终结果留在栈中。</p>
 <p><strong>后缀式的推广</strong>：可推广到任何语句。如 <code>if e then x else y</code> 的后缀式可写为 <code>e x y if-then-else</code>。</p>
 <h4 id="133">1.3.3 三地址码</h4>
-<p>三地址码的直观形式：
-- <code>result := arg1 op arg2</code>（二元运算）
-- <code>result := op arg1</code>（一元运算）
-- <code>op arg1</code></p>
+<p>三地址码的直观形式：</p>
+<ul>
+<li><code>result := arg1 op arg2</code>（二元运算）</li>
+<li><code>result := op arg1</code>（一元运算）</li>
+<li><code>op arg1</code></li>
+</ul>
 <p><strong>示例</strong>：$x := a + b * c$ 的三地址码序列：</p>
 <pre class="codehilite"><code>T1 := b * c
 T2 := a + T1
@@ -267,48 +285,62 @@ x := T2
 (3) (:=, x, T2, T3)
 </code></pre>
 
-<p><strong>四元式的语法制导翻译要素</strong>：
-- 属性 <code>.code</code>：表示存放运算结果的变量
-- 函数 <code>newtemp</code>：返回一个新的临时变量
-- 过程 <code>emit(op, arg1, arg2, result)</code>：生成一个四元式</p>
+<p><strong>四元式的语法制导翻译要素</strong>：</p>
+<ul>
+<li>属性 <code>.code</code>：表示存放运算结果的变量</li>
+<li>函数 <code>newtemp</code>：返回一个新的临时变量</li>
+<li>过程 <code>emit(op, arg1, arg2, result)</code>：生成一个四元式</li>
+</ul>
 <h4 id="136-dag">1.3.6 图形表示（树/DAG）</h4>
 <p><strong>树作为中间代码</strong>：语法树真实反映句子结构，对语法树稍加修改（加入语义信息）即可作为中间代码。每个内部节点和它的孩子对应一个三元式或四元式。</p>
 <p><strong>DAG（有向无环图）</strong>：如果树上若干个节点有完全相同的孩子，则这些节点可以指向同一个孩子，实现资源共享。</p>
-<p><strong>树与其他中间代码的关系</strong>：
-- 对树进行深度优先后序遍历 → 后缀式
-- 树的每个内部节点和它的孩子 → 三元式或四元式
-- 现代的编译器基础架构均用语法树作为中间表示</p>
+<p><strong>树与其他中间代码的关系</strong>：</p>
+<ul>
+<li>对树进行深度优先后序遍历 → 后缀式</li>
+<li>树的每个内部节点和它的孩子 → 三元式或四元式</li>
+<li>现代的编译器基础架构均用语法树作为中间表示</li>
+</ul>
 <h3 id="14">1.4 符号表</h3>
 <h4 id="141">1.4.1 符号表的作用与设计要求</h4>
 <p>符号表是连接声明与引用的<strong>桥梁</strong>，记住每个符号的相关信息（作用域、绑定等），帮助编译的各个阶段正确有效地工作。</p>
-<p><strong>设计要求</strong>：
-- 正确存储各类信息
-- 适应不同阶段的需求
-- 便于有效地进行查找、插入、删除和修改
-- 空间可以动态扩充</p>
+<p><strong>设计要求</strong>：</p>
+<ul>
+<li>正确存储各类信息</li>
+<li>适应不同阶段的需求</li>
+<li>便于有效地进行查找、插入、删除和修改</li>
+<li>空间可以动态扩充</li>
+</ul>
 <h4 id="142">1.4.2 符号表的条目</h4>
-<p>每个声明的名字在符号表中占据一个条目，存放名字的相关信息。
-- 多个子表：变量名表、过程名表、保留字表等
-- 存放方式：<strong>关键字 + 属性</strong>
-- C 符号表的组合关键字至少包括：名字 + 作用域 + 类型</p>
+<p>每个声明的名字在符号表中占据一个条目，存放名字的相关信息。</p>
+<ul>
+<li>多个子表：变量名表、过程名表、保留字表等</li>
+<li>存放方式：<strong>关键字 + 属性</strong></li>
+<li>C 符号表的组合关键字至少包括：名字 + 作用域 + 类型</li>
+</ul>
 <h4 id="143">1.4.3 名字的作用域</h4>
 <p><strong>名字的作用域</strong>：名字在哪个范围内起作用。</p>
-<p>两种划分范围的方式：
-- <strong>并列的</strong>：两个范围内的名字作用域互不相干
-- <strong>嵌套的</strong>：需要用规则限定（如过程嵌套）</p>
+<p>两种划分范围的方式：</p>
+<ul>
+<li><strong>并列的</strong>：两个范围内的名字作用域互不相干</li>
+<li><strong>嵌套的</strong>：需要用规则限定（如过程嵌套）</li>
+</ul>
 <p><strong>静态作用域规则</strong>（static-scope rule）：编译时就可以确定名字的作用域。</p>
 <p><strong>最近嵌套规则</strong>（most closely nested）：名字声明在离其最近的内层起作用——在名字引用处从内向外看，它处在所遇到的第一个该名字声明的作用域。</p>
 <h4 id="144">1.4.4 线性表组织</h4>
 <p>线性表应是一个<strong>栈</strong>结构，以正确反映名字的作用域。</p>
-<p><strong>基本操作</strong>：
-- <strong>查找</strong>：从表头（栈顶）开始，遇到的第一个名字
-- <strong>插入</strong>：先查找，再插入在表头
-- <strong>删除</strong>：暂时删除（摘走并保存）或永久删除（摘走不再保存）
-- <strong>修改</strong>：与查找类似（可用删除+插入代替）</p>
-<p><strong>效率</strong>（n个条目）：
-- 成功查找（平均）：$(n+1)/2$
-- 不成功查找：$n+1$
-- 建立 n 个条目的符号表（最坏）：$\sum i = (n+1)n/2$</p>
+<p><strong>基本操作</strong>：</p>
+<ul>
+<li><strong>查找</strong>：从表头（栈顶）开始，遇到的第一个名字</li>
+<li><strong>插入</strong>：先查找，再插入在表头</li>
+<li><strong>删除</strong>：暂时删除（摘走并保存）或永久删除（摘走不再保存）</li>
+<li><strong>修改</strong>：与查找类似（可用删除+插入代替）</li>
+</ul>
+<p><strong>效率</strong>（n个条目）：</p>
+<ul>
+<li>成功查找（平均）：$(n+1)/2$</li>
+<li>不成功查找：$n+1$</li>
+<li>建立 n 个条目的符号表（最坏）：$\sum i = (n+1)n/2$</li>
+</ul>
 <h3 id="15">1.5 声明语句的翻译</h3>
 <h4 id="151">1.5.1 变量的类型定义与声明</h4>
 <ul>
@@ -322,10 +354,12 @@ x := T2
 T → int | real | array [num] of T | ^T
 </code></pre>
 
-<p><strong>翻译要素</strong>：
-- 全程量 <code>offset</code>：记录当前符号存储的偏移量，初值设为 0
-- 属性 <code>.type</code> 和 <code>.width</code>：变量的类型和占据的存储空间
-- 过程 <code>enter(name, type, offset)</code>：建立符号表条目并分配存储空间</p>
+<p><strong>翻译要素</strong>：</p>
+<ul>
+<li>全程量 <code>offset</code>：记录当前符号存储的偏移量，初值设为 0</li>
+<li>属性 <code>.type</code> 和 <code>.width</code>：变量的类型和占据的存储空间</li>
+<li>过程 <code>enter(name, type, offset)</code>：建立符号表条目并分配存储空间</li>
+</ul>
 <p><strong>语义规则</strong>：</p>
 <pre class="codehilite"><code>D → id : T    {enter(id.name, T.type, offset); offset := offset + T.width}
 T → int       {T.type := integer; T.width := 4}
@@ -383,23 +417,29 @@ T → ^T1       {T.type := pointer(T1.type); T.width := 4}
 <p><strong>C语言仅支持值调用</strong>，可通过传递指针模拟引用调用的效果。</p>
 <p><strong>引用调用的副作用</strong>：当实参与非本地量共用存储空间时，过程内修改参数值的同时也改变了非本地量的值。</p>
 <h4 id="156">1.5.6 嵌套过程符号表的作用域信息</h4>
-<p>在允许嵌套定义过程的语言中，符号表使用有嵌套结构的组织方式：
-- 每个过程被认为是一个子符号表（节点）
-- 嵌套的节点之间用<strong>双向链</strong>连接
-- 正向链指示过程的嵌套关系
-- 逆向链实现按作用域对名字进行访问</p>
+<p>在允许嵌套定义过程的语言中，符号表使用有嵌套结构的组织方式：</p>
+<ul>
+<li>每个过程被认为是一个子符号表（节点）</li>
+<li>嵌套的节点之间用<strong>双向链</strong>连接</li>
+<li>正向链指示过程的嵌套关系</li>
+<li>逆向链实现按作用域对名字进行访问</li>
+</ul>
 <p><strong>定义4.2</strong>：设主程序的嵌套深度 $d_{main} = 1$，若过程 $A$ 直接嵌套定义过程 $B$，则 $d_B = d_A + 1$。</p>
-<p><strong>语义函数</strong>：
-- <code>mktable(previous)</code>：建立新节点，返回指针
-- <code>enter(table, name, type, offset)</code>：在节点中建立新条目
-- <code>addwidth(table, width)</code>：计算节点中所有条目的累加宽度
-- <code>enterproc(table, name, newtable)</code>：为过程名建立条目</p>
+<p><strong>语义函数</strong>：</p>
+<ul>
+<li><code>mktable(previous)</code>：建立新节点，返回指针</li>
+<li><code>enter(table, name, type, offset)</code>：在节点中建立新条目</li>
+<li><code>addwidth(table, width)</code>：计算节点中所有条目的累加宽度</li>
+<li><code>enterproc(table, name, newtable)</code>：为过程名建立条目</li>
+</ul>
 <h3 id="16">1.6 可执行语句的翻译</h3>
 <h4 id="161">1.6.1 简单算术表达式与赋值句</h4>
 <p><strong>文法</strong>：$A \to id := E$，$E \to E+E \mid E*E \mid -E \mid (E) \mid id$</p>
-<p><strong>翻译要素</strong>：
-- 属性 <code>.place</code>：存放 $E$ 的变量名地址
-- 过程 <code>emit()</code>：生成三地址码</p>
+<p><strong>翻译要素</strong>：</p>
+<ul>
+<li>属性 <code>.place</code>：存放 $E$ 的变量名地址</li>
+<li>过程 <code>emit()</code>：生成三地址码</li>
+</ul>
 <p><strong>语义规则</strong>：</p>
 <pre class="codehilite"><code>A → id := E    {emit(entry(id.name) ':=' E.place)}
 E → E1 + E2    {E.place := newtemp; emit(E.place ':=' E1.place '+' E2.place)}
@@ -418,26 +458,34 @@ E → id         {E.place := entry(id.name)}
 <p>语义规则需根据左右部类型是否相同判断是否需要插入类型转换代码。</p>
 <h4 id="163">1.6.3 布尔表达式的翻译</h4>
 <p><strong>布尔表达式的两种计算方法</strong>：</p>
-<p><strong>方法一：数值表示的直接计算</strong>
-- 用 1 表示 true，0 表示 false
-- or、and、not 与 +、*、-（一元）对应
-- 关系运算通过条件跳转实现</p>
-<p><strong>方法二：逻辑表示的短路计算</strong>
-- $A\ or\ B$：if $A$ then true else $B$
-- $A\ and\ B$：if $A$ then $B$ else false
-- $not\ A$：if $A$ then false else true</p>
+<p><strong>方法一：数值表示的直接计算</strong></p>
+<ul>
+<li>用 1 表示 true，0 表示 false</li>
+<li>or、and、not 与 +、*、-（一元）对应</li>
+<li>关系运算通过条件跳转实现</li>
+</ul>
+<p><strong>方法二：逻辑表示的短路计算</strong></p>
+<ul>
+<li>$A\ or\ B$：if $A$ then true else $B$</li>
+<li>$A\ and\ B$：if $A$ then $B$ else false</li>
+<li>$not\ A$：if $A$ then false else true</li>
+</ul>
 <p>短路计算的必要性：可以避免运行时错误。例如：</p>
 <pre class="codehilite"><code>while ptr&lt;&gt;nil and ptr^.data=x do ...
 </code></pre>
 
 <p>短路计算可以回避对 <code>ptr^.data=x</code> 的判断。</p>
-<p><strong>短路计算的语法制导定义</strong>：
-- 属性 <code>.true</code>：表达式的真出口
-- 属性 <code>.false</code>：表达式的假出口
-- 函数 <code>newlabel</code>：产生新标号</p>
-<p><strong>拉链与回填</strong>：
-- 当三地址码中的转向不确定时，将所有转向同一地址的三地址码拉成一个链
-- 一旦所转向的地址被确定，则沿此链回填地址</p>
+<p><strong>短路计算的语法制导定义</strong>：</p>
+<ul>
+<li>属性 <code>.true</code>：表达式的真出口</li>
+<li>属性 <code>.false</code>：表达式的假出口</li>
+<li>函数 <code>newlabel</code>：产生新标号</li>
+</ul>
+<p><strong>拉链与回填</strong>：</p>
+<ul>
+<li>当三地址码中的转向不确定时，将所有转向同一地址的三地址码拉成一个链</li>
+<li>一旦所转向的地址被确定，则沿此链回填地址</li>
+</ul>
 <h4 id="164">1.6.4 控制流语句的翻译</h4>
 <p>控制流语句（if-then-else、while-do 等）的翻译需要使用拉链-回填技术处理布尔表达式的短路计算，并正确生成条件跳转和无条件跳转的三地址码。</p>
 <h2 id="_3">二、相关真题与解析</h2>
@@ -461,17 +509,19 @@ E → id         {E.place := entry(id.name)}
 <p><strong>原题：</strong> 简答题——规定逻辑运算符的优先级从高到低为 $\neg$、$\land$、$\lor$、$\to$，并且 $\neg$ 和 $\lor$ 具有右结合性，$\land$ 和 $\to$ 具有左结合性。给出逆波兰式 $AB \to \neg\neg C \lor D \lor E \land$ 的中缀式表示。</p>
 <p><strong>解析/答案：</strong> 从逆波兰式出发，根据运算符的结合性和优先级还原中缀式。</p>
 <p>逆波兰式（后缀式）的求值过程：遇到操作数进栈，遇到运算符弹出操作数形成子表达式。</p>
-<p>逆波兰式 $A\ B\ \to\ \neg\ \neg\ C\ \lor\ D\ \lor\ E\ \land$：
-- 读入 $A, B$ → 栈中：$A, B$
-- 遇到 $\to$：$(A \to B)$
-- 遇到 $\neg$：$\neg(A \to B)$
-- 遇到 $\neg$：$\neg\neg(A \to B)$
-- 读入 $C$：$\neg\neg(A \to B), C$
-- 遇到 $\lor$：$(\neg\neg(A \to B) \lor C)$（$\lor$ 右结合）
-- 读入 $D$：$(\neg\neg(A \to B) \lor C), D$
-- 遇到 $\lor$：$(\neg\neg(A \to B) \lor (C \lor D))$
-- 读入 $E$：$(\neg\neg(A \to B) \lor (C \lor D)), E$
-- 遇到 $\land$：$((\neg\neg(A \to B) \lor (C \lor D)) \land E)$</p>
+<p>逆波兰式 $A\ B\ \to\ \neg\ \neg\ C\ \lor\ D\ \lor\ E\ \land$：</p>
+<ul>
+<li>读入 $A, B$ → 栈中：$A, B$</li>
+<li>遇到 $\to$：$(A \to B)$</li>
+<li>遇到 $\neg$：$\neg(A \to B)$</li>
+<li>遇到 $\neg$：$\neg\neg(A \to B)$</li>
+<li>读入 $C$：$\neg\neg(A \to B), C$</li>
+<li>遇到 $\lor$：$(\neg\neg(A \to B) \lor C)$（$\lor$ 右结合）</li>
+<li>读入 $D$：$(\neg\neg(A \to B) \lor C), D$</li>
+<li>遇到 $\lor$：$(\neg\neg(A \to B) \lor (C \lor D))$</li>
+<li>读入 $E$：$(\neg\neg(A \to B) \lor (C \lor D)), E$</li>
+<li>遇到 $\land$：$((\neg\neg(A \to B) \lor (C \lor D)) \land E)$</li>
+</ul>
 <p>中缀式：$(\neg\neg(A \to B) \lor (C \lor D)) \land E$</p>
 <hr />
 <h3 id="62022-a">题目6（来源：2022年 试题A）</h3>

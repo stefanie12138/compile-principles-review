@@ -82,21 +82,25 @@ hr { border: none; border-top: 2px solid var(--border); margin: 2rem 0; }
 <h3 id="11">1.1 从正规式到词法分析器的总体路线</h3>
 <p>构造词法分析器的一般方法遵循以下五步过程：</p>
 <p>$$\text{正规式} \rightarrow \text{NFA} \rightarrow \text{DFA} \rightarrow \text{最小化DFA} \rightarrow \text{词法分析器}$$</p>
-<p><strong>为什么需要经过 NFA 这一步？</strong>
-- 正规式 → NFA：有规范的一对一的构造算法（Thompson 算法）
-- DFA → 词法分析器：有便于单词符号识别的算法（DFA 模拟器）
-- NFA → DFA：有规范的确定化算法（子集构造法）
-- 最小化 DFA：得到状态数最少的等价 DFA，提高空间效率</p>
+<p><strong>为什么需要经过 NFA 这一步？</strong></p>
+<ul>
+<li>正规式 → NFA：有规范的一对一的构造算法（Thompson 算法）</li>
+<li>DFA → 词法分析器：有便于单词符号识别的算法（DFA 模拟器）</li>
+<li>NFA → DFA：有规范的确定化算法（子集构造法）</li>
+<li>最小化 DFA：得到状态数最少的等价 DFA，提高空间效率</li>
+</ul>
 <h3 id="12">1.2 有限自动机的等价性</h3>
 <p><strong>定义2.6</strong>：若有两个有限自动机 $M_1$ 和 $M_2$，满足 $L(M_1) = L(M_2)$，即它们接受相同的语言（识别同一个正规集），则称 $M_1$ 和 $M_2$ 是<strong>等价</strong>的，记为 $M_1 = M_2$。</p>
 <p><strong>定理2.1</strong>：设 $L$ 是被 NFA $M_1$ 所接受的语言，那么一定存在一个 DFA $M_2$，满足 $L(M_1) = L(M_2)$。</p>
 <p><strong>关键结论</strong>：对任意正规式 $e$，均可构造一个 NFA $M$，使 $L(M) = L(e)$。NFA 和 DFA 的描述能力等价。</p>
 <h3 id="13-thompson-nfa">1.3 Thompson 算法：从正规式构造 NFA</h3>
 <h4 id="131">1.3.1 算法描述</h4>
-<p><strong>算法2.2（Thompson 算法）</strong>
-- <strong>输入</strong>：字母表 $\Sigma$ 上的正规式 $r$
-- <strong>输出</strong>：接受 $L(r)$ 的 NFA $N$
-- <strong>方法</strong>：首先分解 $r$，然后按下述步骤自下而上构造 NFA</p>
+<p><strong>算法2.2（Thompson 算法）</strong></p>
+<ul>
+<li><strong>输入</strong>：字母表 $\Sigma$ 上的正规式 $r$</li>
+<li><strong>输出</strong>：接受 $L(r)$ 的 NFA $N$</li>
+<li><strong>方法</strong>：首先分解 $r$，然后按下述步骤自下而上构造 NFA</li>
+</ul>
 <h4 id="132">1.3.2 基本构造规则</h4>
 <p><strong>(1) 对 $\varepsilon$</strong>：构造 NFA $N(\varepsilon)$，其中 $s_0$ 为初态，$f$ 为终态，此 NFA 接受 $\{\varepsilon\}$。</p>
 <p>$$N(\varepsilon): s_0 \xrightarrow{\varepsilon} f$$</p>
@@ -165,29 +169,35 @@ hr { border: none; border-top: 2px solid var(--border); margin: 2rem 0; }
 </tr>
 </tbody>
 </table>
-<p><strong>Thompson 算法的特点</strong>：
-- 构造与正规式<strong>一一对应</strong>
-- 构造一个新的 NFA 最多增加<strong>两个状态</strong></p>
+<p><strong>Thompson 算法的特点</strong>：</p>
+<ul>
+<li>构造与正规式<strong>一一对应</strong></li>
+<li>构造一个新的 NFA 最多增加<strong>两个状态</strong></li>
+</ul>
 <h4 id="134">1.3.4 构造示例</h4>
 <p><strong>例2.14</strong>：用 Thompson 算法构造正规式 $r = (a|b)^*abb$ 的 NFA $N(r)$</p>
-<p>步骤：
-1. 分解正规式：$(a|b)^*abb = ((a|b)^*)(a)(b)(b)$
-2. 自下而上构造：
-   - 先构造 $N(a)$ 和 $N(b)$
-   - 构造 $N(a|b)$（应用 $p|q$ 规则）
-   - 构造 $N((a|b)^*)$（应用 $p^*$ 规则）
-   - 依次连接 $N(a)$、$N(b)$、$N(b)$（应用 $pq$ 规则）
-3. 最终得到包含 11 个状态的 NFA</p>
+<p>步骤：</p>
+<ol>
+<li>分解正规式：$(a|b)^*abb = ((a|b)^*)(a)(b)(b)$</li>
+<li>自下而上构造：</li>
+<li>先构造 $N(a)$ 和 $N(b)$</li>
+<li>构造 $N(a|b)$（应用 $p|q$ 规则）</li>
+<li>构造 $N((a|b)^*)$（应用 $p^*$ 规则）</li>
+<li>依次连接 $N(a)$、$N(b)$、$N(b)$（应用 $pq$ 规则）</li>
+<li>最终得到包含 11 个状态的 NFA</li>
+</ol>
 <h3 id="14-nfa">1.4 NFA 的确定化：子集构造法</h3>
 <h4 id="141">1.4.1 确定化的思想</h4>
 <p>NFA 存在不确定性（$\varepsilon$ 转移、同一字符多个下一状态），使得难以用计算机程序直接模拟。子集构造法的核心思想是：让新构造的 DFA 的<strong>每个状态代表 NFA 的一个状态集</strong>，DFA 用它的状态去记住 NFA 在读输入符号后能到达的所有状态。</p>
 <h4 id="142">1.4.2 关键函数定义</h4>
 <p><strong>$\varepsilon$-闭包($T$)</strong>：
 从状态集 $T$ 出发，不经任何字符（仅通过 $\varepsilon$ 边）能到达的状态全体。</p>
-<p>形式化定义：状态集 $T$ 的 $\varepsilon$-闭包($T$) 是一个状态集，满足：
-1. $T$ 中所有状态属于 $\varepsilon$-闭包($T$)
-2. 任何 $smove(\varepsilon\text{-闭包}(T), \varepsilon)$ 属于 $\varepsilon$-闭包($T$)
-3. 再无其他状态属于 $\varepsilon$-闭包($T$)</p>
+<p>形式化定义：状态集 $T$ 的 $\varepsilon$-闭包($T$) 是一个状态集，满足：</p>
+<ol>
+<li>$T$ 中所有状态属于 $\varepsilon$-闭包($T$)</li>
+<li>任何 $smove(\varepsilon\text{-闭包}(T), \varepsilon)$ 属于 $\varepsilon$-闭包($T$)</li>
+<li>再无其他状态属于 $\varepsilon$-闭包($T$)</li>
+</ol>
 <p><strong>$smove(S, a)$</strong>：
 从状态集 $S$ 出发，通过标记为 $a$ 的边能到达的下一状态全体。与 $move(s, a)$ 的区别在于用<strong>状态集</strong>取代单个<strong>状态</strong>。</p>
 <h4 id="143-nfa-22">1.4.3 NFA 模拟算法（算法2.2'）</h4>
@@ -297,9 +307,11 @@ $$E = \varepsilon\text{-闭包}(smove(D, b)) = \{1,2,4,5,6,7,10\}$$</p>
 <p>重命名状态：A→0, B→1, C→2, D→3, E→4，其中 4 为终态（包含原 NFA 终态 10）。</p>
 <h3 id="15-dfa">1.5 DFA 的最小化</h3>
 <h4 id="151">1.5.1 等价状态与可区分状态</h4>
-<p><strong>定义</strong>：设 $p, q \in S$，对于任一输入序列 $w \in \Sigma^*$：
-- 若 $move(p, w) \in F$ 且 $move(q, w) \in F$，则称状态 $p$ 和 $q$ <strong>等价</strong>
-- 否则，称 $p$ 和 $q$ 是<strong>可区分的</strong>——即存在 $x \in \Sigma^*$，使得 $move(p, x)$ 和 $move(q, x)$ 一个为终态一个为非终态</p>
+<p><strong>定义</strong>：设 $p, q \in S$，对于任一输入序列 $w \in \Sigma^*$：</p>
+<ul>
+<li>若 $move(p, w) \in F$ 且 $move(q, w) \in F$，则称状态 $p$ 和 $q$ <strong>等价</strong></li>
+<li>否则，称 $p$ 和 $q$ 是<strong>可区分的</strong>——即存在 $x \in \Sigma^*$，使得 $move(p, x)$ 和 $move(q, x)$ 一个为终态一个为非终态</li>
+</ul>
 <p><strong>直观理解</strong>：如果从 $p$ 和 $q$ 出发分析任何输入序列都得到相同结果（都接受或都不接受），则 $p$ 和 $q$ 可以合并成一个状态。</p>
 <h4 id="152-24">1.5.2 最小化算法（算法2.4）</h4>
 <pre class="codehilite"><code>1. 初始划分: Π = {S-F, F1, F2, ...} （非终态组和按接受记号分的终态组）
@@ -400,25 +412,33 @@ $$E = \varepsilon\text{-闭包}(smove(D, b)) = \{1,2,4,5,6,7,10\}$$</p>
 </table>
 <h3 id="16-dfa">1.6 从 DFA 构造词法分析器</h3>
 <h4 id="161">1.6.1 两种实现方式</h4>
-<p><strong>方式一：直接编码的词法分析器</strong>
-- 将 DFA 和 DFA 识别过程合并，直接用程序代码模拟 DFA 行为
-- 状态与语句对应关系：
-  - 初态 → 程序的开始
-  - 终态 → 程序的结束（不同终态 return 不同记号）
-  - 状态转移 → 分情况或条件语句（case/if）
-  - 环 → 循环语句（loop）
-  - return 满足最长匹配原则</p>
-<p><strong>方式二：表驱动型的词法分析器</strong>
-- DFA 是"被动的"数据（分析表），需要一个驱动器来模拟 DFA 的行为
-- 结构：分析表 + 驱动器框架（驱动器与模式无关，是通用的）</p>
+<p><strong>方式一：直接编码的词法分析器</strong></p>
+<ul>
+<li>将 DFA 和 DFA 识别过程合并，直接用程序代码模拟 DFA 行为</li>
+<li>状态与语句对应关系：</li>
+<li>初态 → 程序的开始</li>
+<li>终态 → 程序的结束（不同终态 return 不同记号）</li>
+<li>状态转移 → 分情况或条件语句（case/if）</li>
+<li>环 → 循环语句（loop）</li>
+<li>return 满足最长匹配原则</li>
+</ul>
+<p><strong>方式二：表驱动型的词法分析器</strong></p>
+<ul>
+<li>DFA 是"被动的"数据（分析表），需要一个驱动器来模拟 DFA 的行为</li>
+<li>结构：分析表 + 驱动器框架（驱动器与模式无关，是通用的）</li>
+</ul>
 <h4 id="162-lex">1.6.2 词法分析器的自动生成工具 LEX</h4>
 <p>LEX 是贝尔实验室开发的词法分析器自动生成工具，已成为 UNIX 标准应用程序。</p>
-<p><strong>LEX 的基本结构</strong>：
-- 根据正规式构造的分析表（数据）
-- 驱动器框架（不变的程序逻辑）</p>
-<p><strong>利用 LEX 构造词法分析器的关键</strong>：
-1. 用 LEX 提供的正规式集合设计记号的模式
-2. 用 LEX 提供的语义支持识别记号或指出输入中的错误</p>
+<p><strong>LEX 的基本结构</strong>：</p>
+<ul>
+<li>根据正规式构造的分析表（数据）</li>
+<li>驱动器框架（不变的程序逻辑）</li>
+</ul>
+<p><strong>利用 LEX 构造词法分析器的关键</strong>：</p>
+<ol>
+<li>用 LEX 提供的正规式集合设计记号的模式</li>
+<li>用 LEX 提供的语义支持识别记号或指出输入中的错误</li>
+</ol>
 <h4 id="163">1.6.3 两类分析器的比较</h4>
 <table>
 <thead>
@@ -475,12 +495,14 @@ begin
 end ε-闭包;
 </code></pre>
 
-<p><strong>示例</strong>：计算 $\varepsilon\text{-闭包}(\{s_2\})$
-- 步骤1：$U = \{s_2\}$，$stack = [s_2]$
-- 步骤2：pop $s_2$，$move(s_2, \varepsilon) = s_4$，$U = \{s_2, s_4\}$，push $s_4$
-- 步骤3：pop $s_4$，$move(s_4, \varepsilon) = s_5$，$U = \{s_2, s_4, s_5\}$，push $s_5$
-- 步骤4：pop $s_5$，$move(s_5, \varepsilon)$ 为空
-- 结果：$\varepsilon\text{-闭包}(\{s_2\}) = \{s_2, s_4, s_5\}$</p>
+<p><strong>示例</strong>：计算 $\varepsilon\text{-闭包}(\{s_2\})$</p>
+<ul>
+<li>步骤1：$U = \{s_2\}$，$stack = [s_2]$</li>
+<li>步骤2：pop $s_2$，$move(s_2, \varepsilon) = s_4$，$U = \{s_2, s_4\}$，push $s_4$</li>
+<li>步骤3：pop $s_4$，$move(s_4, \varepsilon) = s_5$，$U = \{s_2, s_4, s_5\}$，push $s_5$</li>
+<li>步骤4：pop $s_5$，$move(s_5, \varepsilon)$ 为空</li>
+<li>结果：$\varepsilon\text{-闭包}(\{s_2\}) = \{s_2, s_4, s_5\}$</li>
+</ul>
 <h2 id="_2">二、相关真题与解析</h2>
 <h3 id="12022-a">题目1（来源：2022年 试题A）</h3>
 <p><strong>原题：</strong> 已知正规式 $(b|a)^*a$ 描述的正规集，试给出：
@@ -489,11 +511,13 @@ end ε-闭包;
 （3）最小化的 DFA。</p>
 <p><strong>解析/答案：</strong></p>
 <p><strong>(1) Thompson 算法构造 NFA</strong></p>
-<p>分解正规式：$(b|a)^*a$
-- 先构造 $N(b)$ 和 $N(a)$
-- 构造 $N(b|a)$（或运算）
-- 构造 $N((b|a)^*)$（闭包运算）
-- 与 $N(a)$ 连接</p>
+<p>分解正规式：$(b|a)^*a$</p>
+<ul>
+<li>先构造 $N(b)$ 和 $N(a)$</li>
+<li>构造 $N(b|a)$（或运算）</li>
+<li>构造 $N((b|a)^*)$（闭包运算）</li>
+<li>与 $N(a)$ 连接</li>
+</ul>
 <p>得到 NFA：包含状态集和相应的 $\varepsilon$ 转移。</p>
 <p><strong>(2) NFA 确定化为 DFA</strong></p>
 <ul>
@@ -502,11 +526,13 @@ end ε-闭包;
 <li>将每个不同的 $U$ 作为一个新的 DFA 状态</li>
 <li>包含 NFA 终态的状态集即为 DFA 终态</li>
 </ul>
-<p><strong>(3) DFA 最小化</strong>
-- 初始划分：非终态组与终态组
-- 考察同一组中各状态对每个字符的转移是否进入同一组
-- 若进入不同组则分裂
-- 重复至不能再分裂</p>
+<p><strong>(3) DFA 最小化</strong></p>
+<ul>
+<li>初始划分：非终态组与终态组</li>
+<li>考察同一组中各状态对每个字符的转移是否进入同一组</li>
+<li>若进入不同组则分裂</li>
+<li>重复至不能再分裂</li>
+</ul>
 <p><strong>最终最小化 DFA</strong> 可用状态转移表表示。</p>
 <hr />
 <h3 id="22022-b">题目2（来源：2022年 试题B）</h3>
@@ -519,10 +545,12 @@ end ε-闭包;
 <h3 id="32022-b">题目3（来源：2022年 试题B）</h3>
 <p><strong>原题：</strong> 简答题——能否使用正规式描述语言 $\{0^m1^m \mid m \geq 1\}$？原因是什么？</p>
 <p><strong>解析/答案：</strong> <strong>不能</strong>。原因：语言 $\{0^m1^m \mid m \geq 1\}$ 不是正规语言，它不能用正规式描述。</p>
-<p>根据<strong>泵引理</strong>（Pumping Lemma），正规语言必须满足泵性质。对于语言 $L = \{0^m1^m \mid m \geq 1\}$：
-- 该语言要求 0 的个数与 1 的个数严格相等，需要一个"计数器"来记住 0 出现了多少次
-- 有限自动机的状态是有限的，无法"记住"任意数量的 0
-- 这超出了正规语言的描述能力，需要用上下文无关文法（2型文法）来描述</p>
+<p>根据<strong>泵引理</strong>（Pumping Lemma），正规语言必须满足泵性质。对于语言 $L = \{0^m1^m \mid m \geq 1\}$：</p>
+<ul>
+<li>该语言要求 0 的个数与 1 的个数严格相等，需要一个"计数器"来记住 0 出现了多少次</li>
+<li>有限自动机的状态是有限的，无法"记住"任意数量的 0</li>
+<li>这超出了正规语言的描述能力，需要用上下文无关文法（2型文法）来描述</li>
+</ul>
 <p>对应的上下文无关文法：$S \to 0S1 \mid 01$。</p>
 <hr />
 <h3 id="42022-a">题目4（来源：2022年 试题A）</h3>
