@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第四讲：语法制导翻译与中间代码生成</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+    });"></script>
+<style>
+:root {
+  --bg: #fdf6e3;
+  --text: #586e75;
+  --heading: #073642;
+  --link: #268bd2;
+  --code-bg: #eee8d5;
+  --border: #d3cbb8;
+  --card-bg: #ffffff;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  --accent: #2aa198;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+  font-size: 16px; line-height: 1.8; color: var(--text);
+  background: var(--bg); max-width: 900px; margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+h1 { font-size: 2rem; color: var(--heading); border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+h2 { font-size: 1.5rem; color: var(--heading); margin: 1.8rem 0 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+h3 { font-size: 1.2rem; color: var(--heading); margin: 1.2rem 0 0.5rem; }
+h4 { font-size: 1.05rem; color: var(--heading); margin: 1rem 0 0.4rem; }
+p { margin: 0.8rem 0; }
+strong { color: #b58900; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  background: var(--code-bg); padding: 0.15em 0.4em; border-radius: 3px;
+  font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
+  font-size: 0.9em; color: #d33682;
+}
+pre {
+  background: #002b36; color: #839496; padding: 1.2rem; border-radius: 6px;
+  overflow-x: auto; margin: 1rem 0; line-height: 1.5;
+}
+pre code { background: none; padding: 0; color: inherit; }
+table {
+  border-collapse: collapse; width: 100%; margin: 1.2rem 0;
+  font-size: 0.95rem; box-shadow: var(--card-shadow);
+}
+th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; }
+th { background: #eee8d5; color: var(--heading); font-weight: 600; }
+tr:nth-child(even) { background: #fdf6e3; }
+tr:nth-child(odd) { background: #ffffff; }
+blockquote {
+  border-left: 4px solid var(--accent); padding: 0.5rem 1rem;
+  margin: 1rem 0; background: #e8f5f4; border-radius: 0 4px 4px 0;
+}
+ul, ol { padding-left: 2rem; margin: 0.6rem 0; }
+li { margin: 0.3rem 0; }
+hr { border: none; border-top: 2px solid var(--border); margin: 2rem 0; }
+.nav { text-align: center; margin-bottom: 2rem; }
+.nav a { margin: 0 0.5rem; padding: 0.3rem 0.8rem; border: 1px solid var(--accent); border-radius: 4px; }
+.nav a:hover { background: var(--accent); color: #fff; text-decoration: none; }
+.katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="index.html">← 返回目录</a>
+  <a href="01-引论与词法分析基础.html">第一~二讲(1-3节)：引论与词法分析基础</a> | <a href="02-词法分析器构造.html">第二讲(4-6节)：词法分析器的构造</a> | <a href="03-语法分析与自上而下分析.html">第三讲(1-2节)：语法分析基础与自上而下分析</a> | <a href="04-自下而上语法分析.html">第三讲(3-5节)：自下而上语法分析</a> | <strong>第四讲：语法制导翻译与中间代码生成</strong>
+</div>
+<h1 id="_1">第四讲：语法制导翻译与中间代码生成</h1>
+<h2 id="_2">一、知识点讲解</h2>
+<h3 id="11">1.1 语法制导翻译概述</h3>
+<h4 id="111">1.1.1 语法与语义的关系</h4>
+<ul>
+<li><strong>语法</strong>：语言的结构，即语言的"样子" —— 是指语言结构是否正确的规则</li>
+<li><strong>语义</strong>：附着于语言结构上的实际含义，即语言的"意义" —— 规定结构正确的句子所表示的意思是否合法</li>
+</ul>
+<p>关键认识：
+- 语义不能离开语法独立存在
+- 语义远比语法复杂
+- 同一语言结构可包含多种含义，不同语言结构可表示相同含义
+- 语法与语义之间没有明确的界线</p>
+<p><strong>语义分析的两个作用</strong>：
+1. 检查结构正确的句子所表示的意思是否合法
+2. 执行规定的语义动作：表达式求值、符号表填写、中间代码生成等</p>
+<h4 id="112">1.1.2 语法制导翻译的基本思想</h4>
+<p><strong>语法制导翻译</strong>（Syntax-Directed Translation, SDT）是处理语义的基本方法。它以语法分析为基础，伴随语法分析的各个步骤，执行相应的语义动作。</p>
+<p><strong>具体方法</strong>：
+- 将文法符号所代表的语言结构的意思，用附着于该文法符号的<strong>属性</strong>表示
+- 用<strong>语义规则</strong>规定产生式所代表的语言结构之间的关系（即属性之间的关系）
+- 在语法分析的适当时刻执行附着在对应产生式上的语义规则</p>
+<h3 id="12">1.2 属性文法</h3>
+<h4 id="121">1.2.1 属性的定义</h4>
+<p><strong>定义4.1</strong>：对于产生式 $A \to \alpha$（$\alpha = X_1X_2\ldots X_n$），其语义规则可以表示为关于属性的函数：
+$$b := f(c_1, c_2, \ldots, c_k)$$</p>
+<p>属性的抽象表示形式：<code>.attr</code>
+例如：$E.val$（值）、$E.type$（类型）、$E.code$（代码序列）、$E.place$（存储空间）</p>
+<h4 id="122">1.2.2 综合属性与继承属性</h4>
+<p><strong>综合属性（Synthesized Attribute）</strong>：
+若 $b$ 是 $A$ 的属性，$c_1, c_2, \ldots, c_k$ 是 $\alpha$ 中文法符号的属性或 $A$ 的其他属性，则称 $b$ 是 $A$ 的<strong>综合属性</strong>。
+- 综合属性自下而上计算（取决于孩子的属性）</p>
+<p><strong>继承属性（Inherited Attribute）</strong>：
+若 $b$ 是 $\alpha$ 中某文法符号 $X_i$ 的属性，$c_1, c_2, \ldots, c_k$ 是 $A$ 的属性或 $\alpha$ 中其他文法符号的属性，则称 $b$ 是 $X_i$ 的<strong>继承属性</strong>。
+- 继承属性自上而下计算（取决于父亲的属性、兄弟的属性）</p>
+<p><strong>属性依赖关系</strong>：属性之间的依赖关系实质上反映了属性计算的先后次序——所有 $c_i$ 被计算之后才能计算属性 $b$。</p>
+<h4 id="123">1.2.3 语义规则的两种形式</h4>
+<table>
+<thead>
+<tr>
+<th>形式</th>
+<th>描述</th>
+<th>适用阶段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>语法制导定义</strong></td>
+<td>用抽象属性和运算符号表示的语义规则（做什么）</td>
+<td>设计阶段</td>
+</tr>
+<tr>
+<td><strong>翻译方案</strong></td>
+<td>用具体属性和运算表示的语义规则（如何做）</td>
+<td>实现阶段</td>
+</tr>
+</tbody>
+</table>
+<p>二者作用等价——语法制导定义是算法，翻译方案是程序实现。</p>
+<h4 id="124">1.2.4 注释分析树</h4>
+<p>将属性附着在分析树对应文法符号上，形成注释分析树。从注释分析树可以看出：
+- 继承属性是<strong>自上而下</strong>计算的
+- 综合属性是<strong>自下而上</strong>计算的</p>
+<h4 id="125-lr">1.2.5 LR分析中的语法制导翻译</h4>
+<p>LR分析中的语法制导翻译是对LR语法分析的扩充：
+1. <strong>扩充LR分析器功能</strong>：当执行归约产生式的动作时，也执行产生式对应的语义动作。限制语义动作仅能放在产生式右部的最右边
+2. <strong>扩充分析栈</strong>：增加一个与分析栈并列的<strong>语义栈</strong>，用于存放分析栈中文法符号所对应的属性值</p>
+<p><strong>示例</strong>：$E \to E_1 + E_2$，对应的语义动作为 <code>val[top] := val[top] + val[top+2]</code></p>
+<h3 id="13">1.3 中间代码</h3>
+<h4 id="131">1.3.1 中间代码的作用与特性</h4>
+<p>中间代码是编译器前端与后端的<strong>分水岭</strong>。一个好的中间代码应具备：
+- 便于语法制导翻译
+- 既与机器指令的结构相近，又与具体机器无关</p>
+<h4 id="132">1.3.2 后缀式（逆波兰表示）</h4>
+<p>操作数在前，操作符紧随其后，无需用括号限制运算的优先级和结合性。</p>
+<p>例如：算术表达式 $3+5+8$ 的后缀式为 $3\ 5 + 8 +$</p>
+<p><strong>后缀式计算算法</strong>：操作数进栈，遇到算符时弹出操作数、计算、将结果进栈。最终结果留在栈中。</p>
+<p><strong>后缀式的推广</strong>：可推广到任何语句。如 <code>if e then x else y</code> 的后缀式可写为 <code>e x y if-then-else</code>。</p>
+<h4 id="133">1.3.3 三地址码</h4>
+<p>三地址码的直观形式：
+- <code>result := arg1 op arg2</code>（二元运算）
+- <code>result := op arg1</code>（一元运算）
+- <code>op arg1</code></p>
+<p><strong>示例</strong>：$x := a + b * c$ 的三地址码序列：</p>
+<pre class="codehilite"><code>T1 := b * c
+T2 := a + T1
+x := T2
+</code></pre>
+
+<p><strong>三地址码的种类</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>序号</th>
+<th>三地址码</th>
+<th>四元式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(1)</td>
+<td>$x := y\ op\ z$</td>
+<td>$(op, y, z, x)$</td>
+</tr>
+<tr>
+<td>(2)</td>
+<td>$x := op\ y$</td>
+<td>$(op, y,\ , x)$</td>
+</tr>
+<tr>
+<td>(3)</td>
+<td>$x := y$</td>
+<td>$(:=, y,\ , x)$</td>
+</tr>
+<tr>
+<td>(4)</td>
+<td><code>goto L</code></td>
+<td>$(j,\ ,\ , L)$</td>
+</tr>
+<tr>
+<td>(5)</td>
+<td><code>if x goto L</code></td>
+<td>$(jnz, x,\ , L)$</td>
+</tr>
+<tr>
+<td>(6)</td>
+<td><code>if x relop y goto L</code></td>
+<td>$(jrelop, x, y, L)$</td>
+</tr>
+<tr>
+<td>(7)</td>
+<td><code>param x</code></td>
+<td>$(param,\ ,\ , x)$</td>
+</tr>
+<tr>
+<td>(8)</td>
+<td><code>call n, P</code></td>
+<td>$(call, n,\ , P)$</td>
+</tr>
+<tr>
+<td>(9)</td>
+<td><code>return y</code></td>
+<td>$(return,\ ,\ , y)$</td>
+</tr>
+<tr>
+<td>(10)</td>
+<td>$x := y[i]$</td>
+<td>$(=[], y[i],\ , x)$</td>
+</tr>
+<tr>
+<td>(11)</td>
+<td>$x[i] := y$</td>
+<td>$([]=, y,\ , x[i])$</td>
+</tr>
+<tr>
+<td>(12)</td>
+<td>$x := \&y$</td>
+<td>$(\&, y,\ , x)$</td>
+</tr>
+<tr>
+<td>(13)</td>
+<td>$x := *y$</td>
+<td>$(*, y,\ , x)$</td>
+</tr>
+<tr>
+<td>(14)</td>
+<td>$*x := y$</td>
+<td>$(*=, y,\ , x)$</td>
+</tr>
+</tbody>
+</table>
+<h4 id="134">1.3.4 三元式</h4>
+<p>三元式形式：$(i)\ (op, arg1, arg2)$，表示 $(i) := arg1\ op\ arg2$</p>
+<p><strong>特点</strong>：序号有双重含义——既代表此三元式，又代表三元式存放的结果。</p>
+<p><strong>弱点</strong>：给代码优化带来困难。因为删除或移动代码位置会导致序号变化，从而使其他三元式中对原序号的引用无效。</p>
+<p><strong>示例</strong>：$x := a + b * c$ 的三元式：</p>
+<pre class="codehilite"><code>(1) (*, b, c)
+(2) (+, a, (1))
+(3) (:=, x, (2))
+</code></pre>
+
+<h4 id="135">1.3.5 四元式</h4>
+<p>四元式是对三元式的改进：$(op, arg1, arg2, result)$，表示 $result := arg1\ op\ arg2$</p>
+<p><strong>关键改进</strong>：将三元式序号改为显式的临时变量，使得运算结果与其位置无关，为代码优化提供了极大方便。</p>
+<p><strong>示例</strong>：$x := a + b * c$ 的四元式：</p>
+<pre class="codehilite"><code>(1) (*, b, c, T1)
+(2) (+, a, T1, T2)
+(3) (:=, x, T2, T3)
+</code></pre>
+
+<p><strong>四元式的语法制导翻译要素</strong>：
+- 属性 <code>.code</code>：表示存放运算结果的变量
+- 函数 <code>newtemp</code>：返回一个新的临时变量
+- 过程 <code>emit(op, arg1, arg2, result)</code>：生成一个四元式</p>
+<h4 id="136-dag">1.3.6 图形表示（树/DAG）</h4>
+<p><strong>树作为中间代码</strong>：语法树真实反映句子结构，对语法树稍加修改（加入语义信息）即可作为中间代码。每个内部节点和它的孩子对应一个三元式或四元式。</p>
+<p><strong>DAG（有向无环图）</strong>：如果树上若干个节点有完全相同的孩子，则这些节点可以指向同一个孩子，实现资源共享。</p>
+<p><strong>树与其他中间代码的关系</strong>：
+- 对树进行深度优先后序遍历 → 后缀式
+- 树的每个内部节点和它的孩子 → 三元式或四元式
+- 现代的编译器基础架构均用语法树作为中间表示</p>
+<h3 id="14">1.4 符号表</h3>
+<h4 id="141">1.4.1 符号表的作用与设计要求</h4>
+<p>符号表是连接声明与引用的<strong>桥梁</strong>，记住每个符号的相关信息（作用域、绑定等），帮助编译的各个阶段正确有效地工作。</p>
+<p><strong>设计要求</strong>：
+- 正确存储各类信息
+- 适应不同阶段的需求
+- 便于有效地进行查找、插入、删除和修改
+- 空间可以动态扩充</p>
+<h4 id="142">1.4.2 符号表的条目</h4>
+<p>每个声明的名字在符号表中占据一个条目，存放名字的相关信息。
+- 多个子表：变量名表、过程名表、保留字表等
+- 存放方式：<strong>关键字 + 属性</strong>
+- C 符号表的组合关键字至少包括：名字 + 作用域 + 类型</p>
+<h4 id="143">1.4.3 名字的作用域</h4>
+<p><strong>名字的作用域</strong>：名字在哪个范围内起作用。</p>
+<p>两种划分范围的方式：
+- <strong>并列的</strong>：两个范围内的名字作用域互不相干
+- <strong>嵌套的</strong>：需要用规则限定（如过程嵌套）</p>
+<p><strong>静态作用域规则</strong>（static-scope rule）：编译时就可以确定名字的作用域。</p>
+<p><strong>最近嵌套规则</strong>（most closely nested）：名字声明在离其最近的内层起作用——在名字引用处从内向外看，它处在所遇到的第一个该名字声明的作用域。</p>
+<h4 id="144">1.4.4 线性表组织</h4>
+<p>线性表应是一个<strong>栈</strong>结构，以正确反映名字的作用域。</p>
+<p><strong>基本操作</strong>：
+- <strong>查找</strong>：从表头（栈顶）开始，遇到的第一个名字
+- <strong>插入</strong>：先查找，再插入在表头
+- <strong>删除</strong>：暂时删除（摘走并保存）或永久删除（摘走不再保存）
+- <strong>修改</strong>：与查找类似（可用删除+插入代替）</p>
+<p><strong>效率</strong>（n个条目）：
+- 成功查找（平均）：$(n+1)/2$
+- 不成功查找：$n+1$
+- 建立 n 个条目的符号表（最坏）：$\sum i = (n+1)n/2$</p>
+<h3 id="15">1.5 声明语句的翻译</h3>
+<h4 id="151">1.5.1 变量的类型定义与声明</h4>
+<ul>
+<li><strong>类型定义</strong>：为编译器提供存储空间大小的信息</li>
+<li><strong>变量声明</strong>：为变量分配存储空间</li>
+</ul>
+<p>简单数据类型的存储空间是预定义的（如 integer=4字节，real=8字节，char=1字节），组合数据类型的存储空间需要编译器根据程序员提供的信息计算。</p>
+<h4 id="152">1.5.2 变量声明的语法制导翻译</h4>
+<p><strong>文法</strong>：</p>
+<pre class="codehilite"><code>D → D ; D | id : T
+T → int | real | array [num] of T | ^T
+</code></pre>
+
+<p><strong>翻译要素</strong>：
+- 全程量 <code>offset</code>：记录当前符号存储的偏移量，初值设为 0
+- 属性 <code>.type</code> 和 <code>.width</code>：变量的类型和占据的存储空间
+- 过程 <code>enter(name, type, offset)</code>：建立符号表条目并分配存储空间</p>
+<p><strong>语义规则</strong>：</p>
+<pre class="codehilite"><code>D → id : T    {enter(id.name, T.type, offset); offset := offset + T.width}
+T → int       {T.type := integer; T.width := 4}
+T → real      {T.type := real; T.width := 8}
+T → array[num] of T1  {T.type := array(num.val, T1.type); T.width := num.val * T1.width}
+T → ^T1       {T.type := pointer(T1.type); T.width := 4}
+</code></pre>
+
+<h4 id="153">1.5.3 过程的定义与声明</h4>
+<p>过程的三种形式：<strong>过程定义</strong>、<strong>过程声明</strong>、<strong>过程调用</strong>。</p>
+<p><strong>先声明后引用原则</strong>：过程定义可以写在对它的引用之后。引用前必须先声明。若引用前已定义，则声明可省略。</p>
+<h4 id="154">1.5.4 左值与右值</h4>
+<ul>
+<li><strong>左值</strong>（lvalue）：具有存储空间，是"容器"</li>
+<li><strong>右值</strong>（rvalue）：可以仅是一个值，没有存储空间，是"内容"</li>
+</ul>
+<p>出现在赋值号左边的变量称为左值，出现在右边的称为右值。常量、字面量、函数返回值、表达式的值不能作为左值。</p>
+<h4 id="155">1.5.5 参数传递方式</h4>
+<table>
+<thead>
+<tr>
+<th>传递方式</th>
+<th>特点</th>
+<th>实参要求</th>
+<th>对实参的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>值调用</strong></td>
+<td>传递实参的右值（副本）</td>
+<td>可以是右值</td>
+<td>不影响实参原值</td>
+</tr>
+<tr>
+<td><strong>引用调用</strong></td>
+<td>传递实参的地址</td>
+<td>必须是左值</td>
+<td>修改形参即修改实参</td>
+</tr>
+<tr>
+<td><strong>复写-恢复</strong></td>
+<td>值调用+返回时恢复</td>
+<td>必须是左值</td>
+<td>返回时恢复，避免副作用</td>
+</tr>
+<tr>
+<td><strong>换名调用</strong></td>
+<td>宏替换方式展开</td>
+<td>任意正文</td>
+<td>直接文本替换</td>
+</tr>
+</tbody>
+</table>
+<p><strong>C语言仅支持值调用</strong>，可通过传递指针模拟引用调用的效果。</p>
+<p><strong>引用调用的副作用</strong>：当实参与非本地量共用存储空间时，过程内修改参数值的同时也改变了非本地量的值。</p>
+<h4 id="156">1.5.6 嵌套过程符号表的作用域信息</h4>
+<p>在允许嵌套定义过程的语言中，符号表使用有嵌套结构的组织方式：
+- 每个过程被认为是一个子符号表（节点）
+- 嵌套的节点之间用<strong>双向链</strong>连接
+- 正向链指示过程的嵌套关系
+- 逆向链实现按作用域对名字进行访问</p>
+<p><strong>定义4.2</strong>：设主程序的嵌套深度 $d_{main} = 1$，若过程 $A$ 直接嵌套定义过程 $B$，则 $d_B = d_A + 1$。</p>
+<p><strong>语义函数</strong>：
+- <code>mktable(previous)</code>：建立新节点，返回指针
+- <code>enter(table, name, type, offset)</code>：在节点中建立新条目
+- <code>addwidth(table, width)</code>：计算节点中所有条目的累加宽度
+- <code>enterproc(table, name, newtable)</code>：为过程名建立条目</p>
+<h3 id="16">1.6 可执行语句的翻译</h3>
+<h4 id="161">1.6.1 简单算术表达式与赋值句</h4>
+<p><strong>文法</strong>：$A \to id := E$，$E \to E+E \mid E*E \mid -E \mid (E) \mid id$</p>
+<p><strong>翻译要素</strong>：
+- 属性 <code>.place</code>：存放 $E$ 的变量名地址
+- 过程 <code>emit()</code>：生成三地址码</p>
+<p><strong>语义规则</strong>：</p>
+<pre class="codehilite"><code>A → id := E    {emit(entry(id.name) ':=' E.place)}
+E → E1 + E2    {E.place := newtemp; emit(E.place ':=' E1.place '+' E2.place)}
+E → E1 * E2    {E.place := newtemp; emit(E.place ':=' E1.place '*' E2.place)}
+E → -E1        {E.place := newtemp; emit(E.place ':=' '-' E1.place)}
+E → (E1)       {E.place := E1.place}
+E → id         {E.place := entry(id.name)}
+</code></pre>
+
+<h4 id="162">1.6.2 类型转换</h4>
+<p><strong>强制转换</strong>（coercion）：按照一定原则，将不同类型的变量在内部转换为相同的类型。</p>
+<ul>
+<li><code>T := itr E</code>：将 $E$ 从整型变为实型</li>
+<li><code>T := rti E</code>：将 $E$ 从实型变为整型</li>
+</ul>
+<p>语义规则需根据左右部类型是否相同判断是否需要插入类型转换代码。</p>
+<h4 id="163">1.6.3 布尔表达式的翻译</h4>
+<p><strong>布尔表达式的两种计算方法</strong>：</p>
+<p><strong>方法一：数值表示的直接计算</strong>
+- 用 1 表示 true，0 表示 false
+- or、and、not 与 +、*、-（一元）对应
+- 关系运算通过条件跳转实现</p>
+<p><strong>方法二：逻辑表示的短路计算</strong>
+- $A\ or\ B$：if $A$ then true else $B$
+- $A\ and\ B$：if $A$ then $B$ else false
+- $not\ A$：if $A$ then false else true</p>
+<p>短路计算的必要性：可以避免运行时错误。例如：</p>
+<pre class="codehilite"><code>while ptr&lt;&gt;nil and ptr^.data=x do ...
+</code></pre>
+
+<p>短路计算可以回避对 <code>ptr^.data=x</code> 的判断。</p>
+<p><strong>短路计算的语法制导定义</strong>：
+- 属性 <code>.true</code>：表达式的真出口
+- 属性 <code>.false</code>：表达式的假出口
+- 函数 <code>newlabel</code>：产生新标号</p>
+<p><strong>拉链与回填</strong>：
+- 当三地址码中的转向不确定时，将所有转向同一地址的三地址码拉成一个链
+- 一旦所转向的地址被确定，则沿此链回填地址</p>
+<h4 id="164">1.6.4 控制流语句的翻译</h4>
+<p>控制流语句（if-then-else、while-do 等）的翻译需要使用拉链-回填技术处理布尔表达式的短路计算，并正确生成条件跳转和无条件跳转的三地址码。</p>
+<h2 id="_3">二、相关真题与解析</h2>
+<h3 id="12022-a">题目1（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 填空题——属性文法中终结符具有__________属性，它的属性值由__________提供。</p>
+<p><strong>解析/答案：</strong> <strong>综合</strong>属性；由<strong>词法分析器</strong>（或词法分析程序）提供。终结符（如 id、num）的属性通常是综合属性，其值由词法分析阶段确定（如 <code>id.name</code>、<code>num.lexval</code>）。</p>
+<hr />
+<h3 id="22022-a">题目2（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 填空题——三元式中序号的作用是__________和__________。</p>
+<p><strong>解析/答案：</strong> （1）<strong>标识该三元式</strong>；（2）<strong>存放三元式的计算结果</strong>。三元式的序号具有双重含义——既代表该三元式本身，又代表该三元式运算结果存放的位置。这一特点导致代码优化困难。</p>
+<hr />
+<h3 id="32022-a">题目3（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 填空题——注释语法树中文法符号的继承属性可以由__________结点的属性和__________结点的属性来计算。</p>
+<p><strong>解析/答案：</strong> <strong>父</strong>结点的属性和<strong>兄弟</strong>（或<strong>左兄弟</strong>）结点的属性。继承属性是自上而下计算的——取决于父亲和兄弟（通常是左边兄弟）的属性值。与之相对，综合属性是自下而上计算的，取决于孩子的属性。</p>
+<hr />
+<h3 id="42022-a">题目4（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 填空题——对抽象语法树进行__________可以得到后缀式形式的中间代码。</p>
+<p><strong>解析/答案：</strong> <strong>深度优先后序遍历</strong>。对抽象语法树进行深度优先的后序遍历，得到的线性序列就是后缀式（逆波兰表示）。每个内部节点和它的孩子对应一个三元式或四元式。</p>
+<hr />
+<h3 id="52022-a">题目5（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 简答题——规定逻辑运算符的优先级从高到低为 $\neg$、$\land$、$\lor$、$\to$，并且 $\neg$ 和 $\lor$ 具有右结合性，$\land$ 和 $\to$ 具有左结合性。给出逆波兰式 $AB \to \neg\neg C \lor D \lor E \land$ 的中缀式表示。</p>
+<p><strong>解析/答案：</strong> 从逆波兰式出发，根据运算符的结合性和优先级还原中缀式。</p>
+<p>逆波兰式（后缀式）的求值过程：遇到操作数进栈，遇到运算符弹出操作数形成子表达式。</p>
+<p>逆波兰式 $A\ B\ \to\ \neg\ \neg\ C\ \lor\ D\ \lor\ E\ \land$：
+- 读入 $A, B$ → 栈中：$A, B$
+- 遇到 $\to$：$(A \to B)$
+- 遇到 $\neg$：$\neg(A \to B)$
+- 遇到 $\neg$：$\neg\neg(A \to B)$
+- 读入 $C$：$\neg\neg(A \to B), C$
+- 遇到 $\lor$：$(\neg\neg(A \to B) \lor C)$（$\lor$ 右结合）
+- 读入 $D$：$(\neg\neg(A \to B) \lor C), D$
+- 遇到 $\lor$：$(\neg\neg(A \to B) \lor (C \lor D))$
+- 读入 $E$：$(\neg\neg(A \to B) \lor (C \lor D)), E$
+- 遇到 $\land$：$((\neg\neg(A \to B) \lor (C \lor D)) \land E)$</p>
+<p>中缀式：$(\neg\neg(A \to B) \lor (C \lor D)) \land E$</p>
+<hr />
+<h3 id="62022-a">题目6（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 简答题——某表达式计算的语法制导定义如下，画出表达式 $15+(6*7+8)$ 的注释语法树。</p>
+<pre class="codehilite"><code>L → E { print(E.val) }
+E → E1 * T { E.val := E1.val + T.val }
+E → T { E.val := T.val }
+T → T1 + F { T.val := T1.val - F.val }
+T → F { T.val := F.val }
+F → (E) { F.val := E.val }
+F → num { F.val := num.lexval }
+</code></pre>
+
+<p><strong>解析/答案：</strong> 注意此题中运算符语义被"交换"了（<code>*</code> 对应加法、<code>+</code> 对应减法）。</p>
+<p>表达式 $15+(6*7+8)$ 的语法树（按给定优先级，<code>+</code> 优先级高于 <code>*</code>，但括号改变优先级）：</p>
+<ol>
+<li>先计算括号内 $6*7+8$：</li>
+<li>$6*7$ 对应 $T \to T1+F$，所以 $T.val = 6-7 = -1$</li>
+<li>$-1+8$ 对应 $E \to E1*T$，所以 $E.val = (-1)+8 = 7$</li>
+<li>括号内值为 $7$</li>
+<li>计算 $15+7$：</li>
+<li>对应 $E \to E1*T$，所以 $E.val = 15+7 = 22$</li>
+</ol>
+<p>最终 $E.val = 22$，输出 $22$。</p>
+<p>注释语法树中每个结点标注对应的 <code>.val</code> 属性值。</p>
+<hr />
+<h3 id="72022-a">题目7（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 计算题——将下列语句翻译成三地址码（布尔表达式要求采用短路计算）：</p>
+<pre class="codehilite"><code>while not a&gt;b and c&lt;d
+do
+    while c&lt;e
+    do
+        if d&gt;e
+        then e:=b*d
+        else c:=a+b
+</code></pre>
+
+<p>其中 a、b 为整型，c、d、e 为实型。</p>
+<p><strong>解析/答案：</strong> 使用短路计算翻译，需引入标号表示真假出口，并正确处理类型转换。</p>
+<pre class="codehilite"><code>L1: if a&gt;b goto L2         -- not a&gt;b 为假时跳转
+    goto L3                -- not a&gt;b 为真
+L2: if c&lt;d goto L4         -- c&lt;d 为真时进入循环体
+    goto L_next             -- 整个条件为假，退出外层循环
+L3: if c&lt;d goto L4
+    goto L_next
+L4: if c&lt;e goto L5         -- 内层 while 条件
+    goto L1                -- 内层条件为假，返回外层
+L5: if d&gt;e goto L6         -- if 条件
+    goto L7
+L6: t1 := itr b             -- b 整型转实型
+    t2 := t1 * d
+    e := t2
+    goto L4
+L7: t3 := itr a             -- a 整型转实型
+    t4 := t3 + b            -- 注意：a+b 中 a 转实型
+    c := rti t4             -- 转回整型(若 c 为整型)或直接赋值
+    goto L4
+L_next:                     -- 循环出口
+</code></pre>
+
+<hr />
+<h3 id="82022-b">题目8（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 填空题——名字的作用域规则包括__________原则和__________原则。</p>
+<p><strong>解析/答案：</strong> <strong>静态作用域</strong>原则和<strong>最近嵌套</strong>原则。静态作用域规则意味着编译时就可以确定名字的作用域；最近嵌套规则意味着名字声明在离其最近的内层起作用。</p>
+<hr />
+<h3 id="92022-b">题目9（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 填空题——参数传递形式有__________、__________、__________、换名调用。</p>
+<p><strong>解析/答案：</strong> <strong>值调用</strong>（call by value）、<strong>引用调用</strong>（call by reference）、<strong>复写-恢复</strong>（copy-in/copy-out）。这是四种常见的参数传递形式。</p>
+<hr />
+<h3 id="102022-b">题目10（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 填空题——语义规则的两种表现方式是__________和__________。</p>
+<p><strong>解析/答案：</strong> <strong>语法制导定义</strong>和<strong>翻译方案</strong>。语法制导定义用抽象属性和运算符号表示（做什么），翻译方案用具体属性和运算表示（如何做）。二者作用等价。</p>
+<hr />
+<h3 id="112022-b">题目11（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 简答题——四元式与三元式的区别是什么？有什么优点？</p>
+<p><strong>解析/答案：</strong> <strong>区别</strong>：三元式用序号来表示运算结果，三元式的值与其在三元式表中的位置相关；四元式将运算结果改用显式的<strong>临时变量</strong>来表示。</p>
+<p><strong>四元式的优点</strong>：运算结果与四元式的位置无关，为代码优化提供了极大方便——可以自由地删除或移动四元式而不影响运算结果（因为临时变量名不依赖于位置）。三元式的弱点是一旦进行代码的删除或移动，序号会发生变化，导致其他三元式中对原序号的引用失效。</p>
+<div class="nav" style="margin-top:3rem;">
+  <a href="index.html">← 返回目录</a>
+  <a href="01-引论与词法分析基础.html">第一~二讲(1-3节)：引论与词法分析基础</a> | <a href="02-词法分析器构造.html">第二讲(4-6节)：词法分析器的构造</a> | <a href="03-语法分析与自上而下分析.html">第三讲(1-2节)：语法分析基础与自上而下分析</a> | <a href="04-自下而上语法分析.html">第三讲(3-5节)：自下而上语法分析</a> | <strong>第四讲：语法制导翻译与中间代码生成</strong>
+</div>
+</body>
+</html>

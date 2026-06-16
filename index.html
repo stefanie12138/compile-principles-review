@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编译原理复习资料</title>
+<style>
+:root {
+  --bg: #fdf6e3;
+  --text: #586e75;
+  --heading: #073642;
+  --link: #268bd2;
+  --code-bg: #eee8d5;
+  --border: #d3cbb8;
+  --card-bg: #ffffff;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  --accent: #2aa198;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+  font-size: 16px; line-height: 1.8; color: var(--text);
+  background: var(--bg); max-width: 900px; margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+h1 { font-size: 2rem; color: var(--heading); border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+h2 { font-size: 1.5rem; color: var(--heading); margin: 1.8rem 0 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+h3 { font-size: 1.2rem; color: var(--heading); margin: 1.2rem 0 0.5rem; }
+h4 { font-size: 1.05rem; color: var(--heading); margin: 1rem 0 0.4rem; }
+p { margin: 0.8rem 0; }
+strong { color: #b58900; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  background: var(--code-bg); padding: 0.15em 0.4em; border-radius: 3px;
+  font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
+  font-size: 0.9em; color: #d33682;
+}
+pre {
+  background: #002b36; color: #839496; padding: 1.2rem; border-radius: 6px;
+  overflow-x: auto; margin: 1rem 0; line-height: 1.5;
+}
+pre code { background: none; padding: 0; color: inherit; }
+table {
+  border-collapse: collapse; width: 100%; margin: 1.2rem 0;
+  font-size: 0.95rem; box-shadow: var(--card-shadow);
+}
+th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; }
+th { background: #eee8d5; color: var(--heading); font-weight: 600; }
+tr:nth-child(even) { background: #fdf6e3; }
+tr:nth-child(odd) { background: #ffffff; }
+blockquote {
+  border-left: 4px solid var(--accent); padding: 0.5rem 1rem;
+  margin: 1rem 0; background: #e8f5f4; border-radius: 0 4px 4px 0;
+}
+ul, ol { padding-left: 2rem; margin: 0.6rem 0; }
+li { margin: 0.3rem 0; }
+hr { border: none; border-top: 2px solid var(--border); margin: 2rem 0; }
+.nav { text-align: center; margin-bottom: 2rem; }
+.nav a { margin: 0 0.5rem; padding: 0.3rem 0.8rem; border: 1px solid var(--accent); border-radius: 4px; }
+.nav a:hover { background: var(--accent); color: #fff; text-decoration: none; }
+.katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+<style>
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem; margin: 2rem 0; }
+.card {
+  background: var(--card-bg); border-radius: 8px; padding: 1.5rem;
+  box-shadow: var(--card-shadow); transition: transform 0.2s, box-shadow 0.2s;
+  border-left: 4px solid var(--accent);
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.card h3 { margin: 0 0 0.5rem; border: none; }
+.card p { color: #93a1a1; margin: 0; font-size: 0.9rem; }
+.info-box {
+  background: #e8f5f4; border: 1px solid var(--accent); border-radius: 8px;
+  padding: 1.2rem 1.5rem; margin: 1.5rem 0;
+}
+.info-box h3 { margin-top: 0; }
+</style>
+</head>
+<body>
+<h1>📚 编译原理复习资料</h1>
+<p style="color: #93a1a1;">西安电子科技大学 · 主讲教师：鱼滨 · 教材：《编译原理》鱼滨、王小兵、张琛主编</p>
+
+<div class="info-box">
+<h3>📋 试卷来源</h3>
+<p>本复习资料中的真题整理自以下试卷：</p>
+<ul>
+<li>2019年编译原理期末试题</li>
+<li>2022年编译原理试题A（带密封）</li>
+<li>2022年编译原理试题B（带密封）</li>
+<li>历年考试题汇编（2019考试内容题型一致）</li>
+
+</ul>
+<p><strong>说明：</strong>2019年与2020年题型一致，大题考察一致，考点基本一致，填空题与往年题有较多重复。2022年试题A与试题B在考点上高度重合，简答题重复度非常高。</p>
+</div>
+
+<h2>📖 复习章节</h2>
+<div class="cards">
+<div class="card">
+  <h3><a href="01-引论与词法分析基础.html">第一~二讲(1-3节)：引论与词法分析基础</a></h3>
+  <p>点击进入详细复习内容</p>
+</div>
+<div class="card">
+  <h3><a href="02-词法分析器构造.html">第二讲(4-6节)：词法分析器的构造</a></h3>
+  <p>点击进入详细复习内容</p>
+</div>
+<div class="card">
+  <h3><a href="03-语法分析与自上而下分析.html">第三讲(1-2节)：语法分析基础与自上而下分析</a></h3>
+  <p>点击进入详细复习内容</p>
+</div>
+<div class="card">
+  <h3><a href="04-自下而上语法分析.html">第三讲(3-5节)：自下而上语法分析</a></h3>
+  <p>点击进入详细复习内容</p>
+</div>
+<div class="card">
+  <h3><a href="05-语法制导翻译与中间代码生成.html">第四讲：语法制导翻译与中间代码生成</a></h3>
+  <p>点击进入详细复习内容</p>
+</div>
+
+</div>
+
+<p style="text-align: center; margin-top: 2rem; color: #93a1a1;">
+由课件和历年试卷自动生成 · <a href="https://github.com">GitHub Pages</a>
+</p>
+</body>
+</html>

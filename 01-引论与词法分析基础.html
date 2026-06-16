@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一~二讲(1-3节)：引论与词法分析基础</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+    });"></script>
+<style>
+:root {
+  --bg: #fdf6e3;
+  --text: #586e75;
+  --heading: #073642;
+  --link: #268bd2;
+  --code-bg: #eee8d5;
+  --border: #d3cbb8;
+  --card-bg: #ffffff;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  --accent: #2aa198;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+  font-size: 16px; line-height: 1.8; color: var(--text);
+  background: var(--bg); max-width: 900px; margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+h1 { font-size: 2rem; color: var(--heading); border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+h2 { font-size: 1.5rem; color: var(--heading); margin: 1.8rem 0 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+h3 { font-size: 1.2rem; color: var(--heading); margin: 1.2rem 0 0.5rem; }
+h4 { font-size: 1.05rem; color: var(--heading); margin: 1rem 0 0.4rem; }
+p { margin: 0.8rem 0; }
+strong { color: #b58900; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  background: var(--code-bg); padding: 0.15em 0.4em; border-radius: 3px;
+  font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
+  font-size: 0.9em; color: #d33682;
+}
+pre {
+  background: #002b36; color: #839496; padding: 1.2rem; border-radius: 6px;
+  overflow-x: auto; margin: 1rem 0; line-height: 1.5;
+}
+pre code { background: none; padding: 0; color: inherit; }
+table {
+  border-collapse: collapse; width: 100%; margin: 1.2rem 0;
+  font-size: 0.95rem; box-shadow: var(--card-shadow);
+}
+th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; }
+th { background: #eee8d5; color: var(--heading); font-weight: 600; }
+tr:nth-child(even) { background: #fdf6e3; }
+tr:nth-child(odd) { background: #ffffff; }
+blockquote {
+  border-left: 4px solid var(--accent); padding: 0.5rem 1rem;
+  margin: 1rem 0; background: #e8f5f4; border-radius: 0 4px 4px 0;
+}
+ul, ol { padding-left: 2rem; margin: 0.6rem 0; }
+li { margin: 0.3rem 0; }
+hr { border: none; border-top: 2px solid var(--border); margin: 2rem 0; }
+.nav { text-align: center; margin-bottom: 2rem; }
+.nav a { margin: 0 0.5rem; padding: 0.3rem 0.8rem; border: 1px solid var(--accent); border-radius: 4px; }
+.nav a:hover { background: var(--accent); color: #fff; text-decoration: none; }
+.katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="index.html">← 返回目录</a>
+  <strong>第一~二讲(1-3节)：引论与词法分析基础</strong> | <a href="02-词法分析器构造.html">第二讲(4-6节)：词法分析器的构造</a> | <a href="03-语法分析与自上而下分析.html">第三讲(1-2节)：语法分析基础与自上而下分析</a> | <a href="04-自下而上语法分析.html">第三讲(3-5节)：自下而上语法分析</a> | <a href="05-语法制导翻译与中间代码生成.html">第四讲：语法制导翻译与中间代码生成</a>
+</div>
+<h1 id="1-3">第一~二讲(1-3节)：引论与词法分析基础</h1>
+<h2 id="_1">一、知识点讲解</h2>
+<h3 id="11">1.1 编译程序概述</h3>
+<h4 id="111">1.1.1 什么是编译程序</h4>
+<p>编译程序（Compiler）是一种能够把某一种语言程序（源语言程序）转换成另一种语言程序（目标语言程序）的程序，后者与前者在逻辑上是等价的。计算机上执行一个高级语言程序一般分为两个步骤：首先，使用编译程序把高级语言翻译成机器语言程序；其次，运行机器语言程序求得计算结果。</p>
+<p><strong>实例</strong>：Pascal语句 <code>x := a+b</code> 或 C++语句 <code>x = a+b</code>，经编译后生成汇编指令（如 <code>MOV AX, [A]</code>、<code>ADD AX, BX</code> 等），最终转换为十六进制机器代码。</p>
+<h4 id="112">1.1.2 编译器与解释器的区别</h4>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>编译器</th>
+<th>解释器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工作方式</td>
+<td>先翻译后执行</td>
+<td>边翻译边执行</td>
+</tr>
+<tr>
+<td>工作效率</td>
+<td>时间快、空间省</td>
+<td>时间慢、空间费</td>
+</tr>
+<tr>
+<td>交互性与动态特性</td>
+<td>差</td>
+<td>好</td>
+</tr>
+<tr>
+<td>可移植性</td>
+<td>差</td>
+<td>好</td>
+</tr>
+<tr>
+<td>典型代表</td>
+<td>C/C++、Pascal</td>
+<td>早期Basic、Java（字节码解释）</td>
+</tr>
+</tbody>
+</table>
+<p>从翻译的角度来讲，两种方式所涉及的原理、方法、技术是相似的。编译程序根据用途进一步分为：
+- <strong>诊断编译程序</strong>（Diagnostic Compiler）：专门用于帮助程序开发和调试
+- <strong>优化编译程序</strong>（Optimizing Compiler）：着重于提高目标代码效率
+- <strong>交叉编译程序</strong>（Cross Compiler）：产生不同于宿主机的机器代码
+- <strong>可变目标编译程序</strong>（Retargetable Compiler）：不需重新编译与机器无关的部分就能改变目标机</p>
+<h4 id="113">1.1.3 程序设计语言的分类</h4>
+<p>按范型划分：
+- <strong>过程式语言</strong>：FORTRAN、C、Pascal
+- <strong>面向对象语言</strong>：C++、Java、Ada95
+- <strong>函数式语言</strong>：LISP、ML（递归特性，面向特定领域）
+- <strong>逻辑程序设计语言</strong>：Prolog
+- <strong>脚本式语言</strong>：Shell（仅是一种安排，没有复杂的逻辑关系）
+- <strong>其他面向特定应用领域的语言</strong>：HTML/XML（互联网）、MATLAB（计算机辅助设计）、VHDL/Verilog（集成电路设计）</p>
+<h4 id="114">1.1.4 语言翻译的类型</h4>
+<ol>
+<li>汇编语言 → 机器指令：<strong>汇编</strong>（或交叉汇编）</li>
+<li>程序设计语言 → 汇编语言/机器指令：<strong>编译</strong>（或解释）</li>
+<li>高级语言之间：<strong>转换</strong>（或预编译）</li>
+<li>逆向：<strong>反汇编</strong>、<strong>反编译</strong></li>
+</ol>
+<h4 id="115">1.1.5 语言的三个维度</h4>
+<ul>
+<li><strong>语法</strong>：语言的结构，即语言的"样子"——用一组规则形成和产生合式的程序（词法规则+语法规则）</li>
+<li><strong>语义</strong>：附着于语言结构上的实际含义，即语言的"意义"——定义单词符号和语法单位的意义</li>
+<li><strong>语用</strong>：语言的使用方式</li>
+</ul>
+<h3 id="12">1.2 编译程序的工作原理与基本结构</h3>
+<h4 id="121">1.2.1 通用程序设计语言的主要成分</h4>
+<p>程序由<strong>声明性语句</strong>（提供操作对象的性质，如数据类型、值、作用域）和<strong>操作性语句</strong>（确定操作的计算次序，完成实际操作）两部分组成。</p>
+<p>编译器的翻译：
+- <strong>声明</strong>：生成相应的环境，一般是配置存储空间
+- <strong>操作</strong>：生成可执行的代码序列</p>
+<h4 id="122">1.2.2 编译的基本过程（五个阶段）</h4>
+<pre class="codehilite"><code>源程序 → 词法分析 → 语法分析 → 语义分析 → 中间代码生成 → 代码优化 → 目标代码生成 → 目标程序
+</code></pre>
+
+<p><strong>阶段1：词法分析</strong>
+- 输入：源程序字符串
+- 输出：单词符号流（记号流）
+- 任务：从左到右逐个字符读入源程序，识别出一个个单词（关键字、标识符、字面量、特殊符号）
+- 依据：语言的词法规则（构词规则），工具是正规式和有限自动机</p>
+<p><strong>阶段2：语法分析</strong>
+- 输入：单词符号流
+- 输出：语法树
+- 任务：识别语言结构，以树的形式表示
+- 依据：语法规则（上下文无关文法），理论模型是下推自动机</p>
+<p><strong>阶段3：语义分析</strong>
+- 任务：检测结构正确的句子是否语义合法，修改树结构
+- 工具：属性文法</p>
+<p><strong>阶段4：中间代码生成</strong>（可选）
+- 生成一种既接近目标语言，又与具体机器无关的表示，便于优化与代码生成
+- 中间代码形式：三地址码、四元式等
+- 到这一阶段为止，编译器与解释器可以一致</p>
+<p><strong>阶段5：目标代码生成</strong>
+- 产生不同形式的目标代码：汇编、可重定位、内存形式（Load-and-Go）</p>
+<p><strong>辅助模块</strong>：
+- <strong>符号表管理</strong>：合理组织符号，便于各阶段查找、填写
+- <strong>出错处理</strong>：处理词法错、语法错、静态语义错、动态语义错</p>
+<h4 id="123">1.2.3 编译的前端和后端</h4>
+<ul>
+<li><strong>前端</strong>：语言结构和意义的分析（词法分析、语法分析、语义分析）</li>
+<li><strong>后端</strong>：语言意义处理（中间代码生成、优化、目标代码生成）</li>
+<li><strong>中间代码</strong>：前端与后端的分界</li>
+<li><strong>编译器基础架构</strong>（Infrastructure）：源代码的中间表示 + 一组前端 + 一组后端</li>
+</ul>
+<h4 id="124">1.2.4 编译器扫描的遍数</h4>
+<p>每个阶段将程序完整分析一遍的工作模式称为<strong>一遍扫描</strong>。确定扫描遍数的因素：
+- 软、硬件条件（如内存太小，或需要全局优化）
+- 语言结构（如规定标识符的先声明后引用）
+- 编译技术（如拉链-回填技术处理 goto 语句）</p>
+<h4 id="125">1.2.5 编译器的编写方式</h4>
+<ol>
+<li>直接使用汇编语言和程序设计语言</li>
+<li>利用编译器编写工具：词/语法分析生成器（LEX/YACC）、语法制导翻译工具、自动代码生成器、数据流工具</li>
+<li>基于编译器基础架构的构造系统（开放式编译器，如 GCC、SUIF）</li>
+</ol>
+<h3 id="13">1.3 词法分析基础</h3>
+<h4 id="131">1.3.1 记号、模式与单词</h4>
+<p>三个核心术语：
+- <strong>模式</strong>（Pattern）：产生和识别元素的<strong>规则</strong>
+- <strong>记号</strong>（Token）：按照某个模式识别出的元素<strong>类别</strong>（一组）
+- <strong>单词</strong>（Lexeme）：被识别出的元素自身的<strong>值</strong>（一个），也称为词值</p>
+<p><strong>记号的属性</strong>：
+$$\text{记号} = \text{记号的类别} + \text{记号的属性}$$</p>
+<p>例如表达式 <code>mycount &gt; 25</code> 由三个记号组成：id(82, "mycount")、relation(81, 5)、num(83, 25)。</p>
+<p><strong>单词的基本分类</strong>：
+| 类别 | 缩写 | 示例 |
+|------|------|------|
+| 关键字（保留字） | kw | const、if |
+| 标识符 | id | pi、count、D2 |
+| 字面量 | literal | "core dumped" |
+| 运算符 | — | +、-、*、/ |
+| 分隔符 | ks | ;、,、(、) |</p>
+<h4 id="132">1.3.2 词法分析器的功能</h4>
+<ol>
+<li>滤掉源程序中的无用成分（注释、空格、回车等）</li>
+<li>处理与具体平台有关的输入（如文件结束符的不同表示）</li>
+<li>识别记号并交给语法分析器</li>
+<li>调用符号表管理器或出错处理器</li>
+</ol>
+<p><strong>工作方式</strong>：
+- 单独一遍扫描
+- 作为语法分析器的子程序
+- 并行方式</p>
+<h4 id="133">1.3.3 源程序的输入和预处理</h4>
+<p>词法分析器的任务是从左到右逐个字符地读入源程序，对构成源程序的字符流进行扫描和分解，识别出一个个单词，把作为字符串的源程序改造成为单词符号串的中间程序。</p>
+<p><strong>预处理</strong>：去除注释、无用的空白、跳格、回车、换行符等，装入词法分析器的扫描缓冲区。</p>
+<h3 id="14">1.4 形式语言基础</h3>
+<h4 id="141">1.4.1 语言的形式化定义</h4>
+<p><strong>定义2.1（乔姆斯基）</strong>：语言 $L$ 是有限字母表 $\Sigma$ 上有限长度字符串的集合。</p>
+<p>两个"有限"的含义：
+1. 字母表 $\Sigma$ 是有限的
+2. 字符串的长度是有限的</p>
+<h4 id="142">1.4.2 字符串的基本概念</h4>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+<th>示例（S="abc"）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$|S|$</td>
+<td>字符串的长度</td>
+<td>$|abc| = 3$</td>
+</tr>
+<tr>
+<td>$\varepsilon$</td>
+<td>空字符串</td>
+<td>$|\varepsilon| = 0$</td>
+</tr>
+<tr>
+<td>$S_1S_2$</td>
+<td>连接</td>
+<td>"abc""def" = "abcdef"</td>
+</tr>
+<tr>
+<td>$S^n$</td>
+<td>幂</td>
+<td>$(\text{"abc"})^3 = \text{"abcabcabc"}$</td>
+</tr>
+<tr>
+<td>前缀</td>
+<td>—</td>
+<td>$\varepsilon$, a, ab, abc</td>
+</tr>
+<tr>
+<td>后缀</td>
+<td>—</td>
+<td>$\varepsilon$, c, bc, abc</td>
+</tr>
+<tr>
+<td>子串</td>
+<td>—</td>
+<td>$\varepsilon$, a, b, c, ab, bc, abc</td>
+</tr>
+<tr>
+<td>真前缀</td>
+<td>非自身前缀</td>
+<td>a, ab</td>
+</tr>
+<tr>
+<td>真后缀</td>
+<td>非自身后缀</td>
+<td>c, bc</td>
+</tr>
+<tr>
+<td>真子串</td>
+<td>非自身子串</td>
+<td>a, b, c, ab, bc</td>
+</tr>
+<tr>
+<td>子序列</td>
+<td>去掉若干不一定连续字符</td>
+<td>"abdf"是"abcdef"的子序列</td>
+</tr>
+</tbody>
+</table>
+<h4 id="143">1.4.3 字符串集合的运算</h4>
+<table>
+<thead>
+<tr>
+<th>运算</th>
+<th>定义</th>
+<th>示例（若 $L=\{a,b\}, M=\{c,d\}$）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>并 $L \cup M$</td>
+<td>$\{s \mid s \in L \text{ 或 } s \in M\}$</td>
+<td>$\{a,b,c,d\}$</td>
+</tr>
+<tr>
+<td>交 $L \cap M$</td>
+<td>$\{s \mid s \in L \text{ 且 } s \in M\}$</td>
+<td>$\Phi$ (空)</td>
+</tr>
+<tr>
+<td>连接 $LM$</td>
+<td>$\{st \mid s \in L \text{ 且 } t \in M\}$</td>
+<td>$\{ac,bc,ad,bd\}$</td>
+</tr>
+<tr>
+<td>闭包 $L^*$</td>
+<td>$L^0 \cup L^1 \cup L^2 \cup \ldots$</td>
+<td>$\{\varepsilon, a, b, aa, bb, ab, ba, \ldots\}$</td>
+</tr>
+<tr>
+<td>正闭包 $L^+$</td>
+<td>$L^1 \cup L^2 \cup L^3 \cup \ldots$</td>
+<td>$\{a, b, aa, bb, ab, ba, \ldots\}$</td>
+</tr>
+</tbody>
+</table>
+<p><strong>重要示例</strong>：令 $L = \{A\text{-}Z, a\text{-}z\}$，$D = \{0\text{-}9\}$
+- $L \cup D$：字母和数字的集合
+- $LD$：一个字母后随一个数字的串的集合
+- $L^4$：四个字母的串的集合
+- $L(L \cup D)^*$：以字母开头的所有字母数字串的集合（即标识符）
+- $D^+$：不含空串的数字串的集合</p>
+<h3 id="15">1.5 正规式与正规集</h3>
+<h4 id="151">1.5.1 正规式的定义</h4>
+<p><strong>定义2.2</strong>：令 $\Sigma$ 是一个有限字母表，则 $\Sigma$ 上的正规式及其表示的集合递归定义如下：
+1. $\varepsilon$ 是正规式，表示集合 $L(\varepsilon) = \{\varepsilon\}$
+2. 若 $a$ 是 $\Sigma$ 上的字符，则 $a$ 是正规式，表示集合 $L(a) = \{a\}$
+3. 若正规式 $e_1$ 和 $e_2$ 分别表示集合 $L(e_1)$ 和 $L(e_2)$，则：
+   - (a) $e_1|e_2$ 是正规式，表示 $L(e_1) \cup L(e_2)$
+   - (b) $e_1e_2$ 是正规式，表示 $L(e_1)L(e_2)$
+   - (c) $e_1^*$ 是正规式，表示 $(L(e_1))^*$
+   - (d) $(e_1)$ 是正规式，表示 $L(e_1)$</p>
+<p>可用正规式描述的语言称为<strong>正规语言</strong>或<strong>正规集</strong>。</p>
+<h4 id="152">1.5.2 运算的优先级与结合性</h4>
+<ol>
+<li>三种运算均具有<strong>左结合</strong>性质</li>
+<li>优先级从高到低：<strong>闭包(*)</strong> &gt; <strong>连接</strong> &gt; <strong>或(|)</strong></li>
+</ol>
+<p>例如：$(a)|(((b)^*)(c))$ 可简化为 $a|b^*c$</p>
+<h4 id="153">1.5.3 正规式的等价</h4>
+<p><strong>定义</strong>：若正规式 $P$ 和 $Q$ 表示了同一个正规集，则称 $P$ 和 $Q$ 是等价的，记为 $P = Q$。</p>
+<p><strong>正规式的代数性质</strong>（A、B、C为正规式）：
+| 公理 | 表达式 |
+|------|--------|
+| 等价性 | $A|B = B|A$ |
+| 结合性 | $(A|B)|C = A|(B|C)$，$(AB)C = A(BC)$ |
+| 分配律 | $A(B|C) = AB|AC$，$(A|B)C = AC|BC$ |
+| 连接恒等 | $\varepsilon A = A\varepsilon = A$ |
+| 闭包幂等 | $A^{**} = A^*$ |
+| $\varepsilon$ 吸收 | $\varepsilon^* = \varepsilon$ |</p>
+<p><strong>正规式等价的判定方法</strong>：
+1. 根据定义，证明不同的正规式表示同一集合
+2. 根据正规式的代数性质进行运算</p>
+<h4 id="154">1.5.4 记号的正规定义</h4>
+<p>用正规式定义记号的公式为：<strong>记号 = 正规式</strong></p>
+<p>可读作"（左边）记号定义为（右边）正规式"，或"记号是正规式"。</p>
+<p>例如 <code>id = a(a|b)^*</code> 可读作"id定义为 $a(a|b)^*$"。</p>
+<h4 id="155">1.5.5 正规式的缩写形式</h4>
+<p><strong>(a) 正闭包 <code>+</code></strong>：$r^+ = rr^* = r^*r$，$r^* = r^+|\varepsilon$</p>
+<p><strong>(b) 可缺省 <code>?</code></strong>：$r? = r|\varepsilon$</p>
+<p><strong>(c) 字符组 <code>[ ]</code></strong>：
+- 枚举：<code>[abc]</code> 等价于 $a|b|c$
+- 分段：<code>[0-9a-z]</code> 等价于 $0|1|...|9|a|b|...|z$</p>
+<p><strong>(d) 非字符组 <code>[^ ]</code></strong>：若 $[r]$ 是一个字符组，则 $[\text{^}r]$ 表示 $\Sigma - L(r)$
+例如：若 $\Sigma = \{a,b,c,d,e,f,g\}$，则 $L([\text{^}abc]) = \{d,e,f,g\}$</p>
+<p><strong>(e) 辅助定义式</strong>：辅助定义的形式与正规式一样，但它不与任何模式匹配，仅供内部使用。</p>
+<p><strong>缩写后的完整示例</strong>：</p>
+<pre class="codehilite"><code>char              = [a-zA-Z]
+digit             = [0-9]
+digits            = digit+
+optional_fraction = ( . digits )?
+optional_exponent = ( E (+|-)? digits )?
+id  = char ( char|digit )*
+num = digits optional_fraction optional_exponent
+</code></pre>
+
+<h3 id="16">1.6 有限自动机</h3>
+<h4 id="161">1.6.1 有限自动机概述</h4>
+<p><strong>有限自动机</strong>（Finite Automata, FA）是描述特定类型算法的数学方法，可用作描述在输入串中识别模式的过程，因此也能被用作构造词法分析程序。</p>
+<p>根据在识别输入单个字符的过程中下一状态是否确定，分为两类：
+- <strong>确定型有限自动机</strong>（DFA）
+- <strong>非确定型有限自动机</strong>（NFA）</p>
+<p>二者都能识别正规集。DFA 的识别器比 NFA 的识别器<strong>快得多</strong>，但 DFA 可能比等价的 NFA<strong>占用更多空间</strong>（时空权衡）。</p>
+<h4 id="162">1.6.2 状态转换图</h4>
+<p>状态转换图是由一组矢量线连接的有限个节点所组成的有向图，是有限自动机的直观图示。一个状态转换图可以用于识别一定的字符串，即从初态出发到某一终态路径上字符的连接。</p>
+<h4 id="163-nfa">1.6.3 不确定的有限自动机（NFA）</h4>
+<p><strong>定义2.4</strong>：NFA 是一个五元组 $M = (S, \Sigma, move, s_0, F)$，其中：
+1. $S$：有限个状态的集合
+2. $\Sigma$：有限个输入字符（<strong>包括 $\varepsilon$</strong>）的集合
+3. $move$：状态转移函数，$move(s_i, ch) = s_j$，表示当前状态 $s_i$ 下若遇到输入字符 $ch$，则转移到状态 $s_j$，且 move 函数是<strong>一对多</strong>的
+4. $s_0$：唯一的初态（开始状态）
+5. $F$：终态集（接受状态集），$F \subseteq S$</p>
+<p><strong>NFA 的三种表示方式</strong>：
+1. <strong>形式定义</strong>（五元组）
+2. <strong>状态转换图</strong>（有向图）：每个状态对应一个节点，每个 $move(s_i, a) = s_j$ 对应一条有向边
+3. <strong>状态转换矩阵</strong>（二维数组）：$M[s_i, a]$ 中的内容是从状态 $s_i$ 出发经字符 $a$（或 $\varepsilon$）所到达的下一状态 $s_j$</p>
+<p><strong>NFA 的不确定性表现</strong>：
+- 定义：move 函数是 <strong>1对多</strong>的
+- 转换图：同一状态有多于一条边标记相同字符转移到不同的状态
+- 转换矩阵：$M[s_i, a]$ 是一个<strong>状态的集合</strong></p>
+<h4 id="164-dfa">1.6.4 确定的有限自动机（DFA）</h4>
+<p><strong>定义2.5</strong>：DFA 是 NFA 的一个特例，其中：
+1. <strong>没有</strong>状态具有 $\varepsilon$ 状态转移（状态转换图中没有标记 $\varepsilon$ 的边）
+2. 对每个状态 $s$ 和每个字符 $a$，<strong>最多有一个</strong>下一状态</p>
+<p><strong>DFA 的特征（确定性）</strong>：
+- 定义：$move(s_i, a)$ 函数是 <strong>1对1</strong>的
+- 转换图：从一个节点出发的边上标记均不相同
+- 转换矩阵：$M[s_i, a]$ 是一个状态
+- 字母表<strong>不包括</strong> $\varepsilon$</p>
+<h4 id="165-dfa-21">1.6.5 DFA 模拟器（算法2.1）</h4>
+<pre class="codehilite"><code>s := s0; ch := nextchar;     -- 初值
+while ch ≠ eof               -- 循环
+  s := move(s, ch);
+  ch := nextchar;
+end loop;
+if s is in F                  -- 返回
+  then return &quot;yes&quot;;
+  else return &quot;no&quot;;
+end if;
+</code></pre>
+
+<p><strong>特点</strong>：算法与模式无关，仅 DFA 与模式相关。算法（模拟器）+ DFA（数据）= 词法分析器核心。</p>
+<h4 id="166-nfa-dfa">1.6.6 NFA 与 DFA 的关系</h4>
+<ul>
+<li>DFA 是 NFA 的特例（对 NFA 施加两条限制即可得到 DFA）</li>
+<li>二者识别能力等价：对任意 NFA，存在等价的 DFA</li>
+<li>DFA 识别速度快但状态多；NFA 状态少但需要回溯</li>
+<li>正规式 → NFA（结构对应、算法简单） → DFA（确定化） → 最小化 DFA → 词法分析器</li>
+</ul>
+<h4 id="167">1.6.7 乔姆斯基文法体系</h4>
+<p>对 0 型文法施加以下第 $i$ 条限制，即得到 $i$ 型文法：
+- <strong>1型（上下文有关文法）</strong>：产生式 $\alpha \to \beta$（$S \to \varepsilon$ 除外）满足 $|\alpha| \leq |\beta|$
+- <strong>2型（上下文无关文法）</strong>：产生式形如 $A \to \beta$，其中 $A \in N$，$\beta \in (N \cup T)^*$
+- <strong>3型（正规文法）</strong>：产生式形如 $A \to a$ 或 $A \to aB$（或 $A \to Ba$），其中 $A,B \in N$，$a \in T$</p>
+<table>
+<thead>
+<tr>
+<th>文法类型</th>
+<th>自动机</th>
+<th>描述能力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0型（无限制）</td>
+<td>图灵机</td>
+<td>递归可枚举语言</td>
+</tr>
+<tr>
+<td>1型（上下文有关）</td>
+<td>线性界限自动机</td>
+<td>上下文有关语言</td>
+</tr>
+<tr>
+<td>2型（上下文无关）</td>
+<td>下推自动机</td>
+<td>上下文无关语言</td>
+</tr>
+<tr>
+<td>3型（正规）</td>
+<td>有限自动机</td>
+<td>正规语言</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键结论</strong>：词法分析使用 3 型文法（正规式+有限自动机），语法分析使用 2 型文法（上下文无关文法+下推自动机）。</p>
+<h2 id="_2">二、相关真题与解析</h2>
+<h3 id="12022-a">题目1（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 识别2型文法描述语言的自动机是__________。</p>
+<p><strong>解析/答案：</strong> 下推自动机。2型文法即上下文无关文法，与之对应的自动机模型是下推自动机（Pushdown Automaton, PDA）。0型→图灵机，1型→线性界限自动机，2型→下推自动机，3型→有限自动机。</p>
+<hr />
+<h3 id="22022-a">题目2（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 描述含偶数个0和偶数个1的01串的正规式是__________。</p>
+<p><strong>解析/答案：</strong> 这类问题需通过构造 DFA 后反推正规式。含偶数个0和偶数个1意味着0的个数和1的个数均为偶数。这需要4个状态来表示奇偶组合：(偶0,偶1)、(奇0,偶1)、(偶0,奇1)、(奇0,奇1)。从状态转移关系可推出等价的正规式。</p>
+<hr />
+<h3 id="32022-a">题目3（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 一个NFA需要满足__________和__________，才是一个DFA。</p>
+<p><strong>解析/答案：</strong> （1）没有 $\varepsilon$ 状态转移（$\varepsilon$-transition）；（2）对每个状态和每个输入字符，最多有一个下一状态。这是 DFA 定义中对 NFA 施加的两条限制条件。</p>
+<hr />
+<h3 id="42022-a">题目4（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 设有表达式 A+b*C，将其中 C 识别为标识符的编译阶段是__________。</p>
+<p><strong>解析/答案：</strong> 词法分析阶段。词法分析阶段的任务是从左到右逐个字符地读入源程序，识别出一个个单词（关键字、标识符、字面量、特殊符号等）。将 C 识别为标识符（id）正是词法分析器的工作。</p>
+<hr />
+<h3 id="52022-a">题目5（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 编译器可以发现程序中的__________错误、__________错误和__________错误。</p>
+<p><strong>解析/答案：</strong> 词法错误、语法错误、语义错误（静态语义错误）。编译时可诊断的错误类型包括：词法错误（如非法字符）、语法错误（如少分号、begin/end不配对）、静态语义错误（如类型不一致、参数不匹配）。动态语义错误（如除数为零、无穷递归）在运行时才能发现。</p>
+<hr />
+<h3 id="62022-b">题目6（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> __________和__________是编译程序各个阶段都涉及到的工作。</p>
+<p><strong>解析/答案：</strong> 符号表管理和出错处理。这两个模块贯穿编译的各个阶段，每个阶段都可能需要访问符号表或报告错误。</p>
+<hr />
+<h3 id="72022-b">题目7（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 描述含101子串的01串的正规式为__________。</p>
+<p><strong>解析/答案：</strong> $(0|1)^*101(0|1)^*$。该正规式表示在任意01串中包含子串"101"。$(0|1)^*$ 匹配任意前缀和后缀，中间必须出现101。</p>
+<hr />
+<h3 id="82022-b">题目8（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 若不考虑声明与引用，程序设计语言中的语法结构可采用__________型文法描述。</p>
+<p><strong>解析/答案：</strong> 2型（上下文无关文法）。程序设计语言的语法结构（如表达式、语句、程序等）通常用上下文无关文法（2型）描述。1型上下文有关文法用于处理声明与引用等需要上下文的场合。</p>
+<hr />
+<h3 id="92022-b">题目9（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 上下文无关文法的组成部分有__________、__________、__________、开始符号。</p>
+<p><strong>解析/答案：</strong> 非终结符集合（$N$）、终结符集合（$T$）、产生式集合（$P$）。上下文无关文法 $G = (N, T, P, S)$，由这四个部分组成，其中 $S$ 为开始符号。</p>
+<hr />
+<h3 id="102022-a">题目10（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 简答题——编译程序中，语义分析和生成中间代码最常用的方法是什么？</p>
+<p><strong>解析/答案：</strong> 语法制导翻译方法（Syntax-Directed Translation, SDT）。它以语法分析为基础，在语法分析得到语言结构的结果时，对附着于此结构的语义进行处理（如计算表达式的值、生成中间代码等）。目前大多数编译程序普遍采用基于属性文法的语法制导翻译方法。具体来说，就是为每个产生式关联一组语义规则，在语法分析过程中根据所使用的产生式执行相应的语义动作。</p>
+<hr />
+<h3 id="112022-a">题目11（来源：2022年 试题A）</h3>
+<p><strong>原题：</strong> 简答题——正规式 $(a|b|c)?(d|e)$ 描述的正规集中包含哪些元素？</p>
+<p><strong>解析/答案：</strong> 逐一枚举：
+- $(a|b|c)?$ 表示可选，即可以取 $a$、$b$、$c$ 或 $\varepsilon$（空）
+- $(d|e)$ 表示取 $d$ 或 $e$</p>
+<p>组合结果：$d$、$e$、$ad$、$ae$、$bd$、$be$、$cd$、$ce$</p>
+<p>共 8 个元素。正规集为 $\{d, e, ad, ae, bd, be, cd, ce\}$。</p>
+<hr />
+<h3 id="122022-b">题目12（来源：2022年 试题B）</h3>
+<p><strong>原题：</strong> 简答题——简述DFA与NFA的区别。</p>
+<p><strong>解析/答案：</strong> DFA 与 NFA 的主要区别：
+1. <strong>状态转移</strong>：DFA 的 move 函数是 1对1 的（每个状态对每个输入字符最多有一个下一状态），NFA 的 move 函数是 1对多 的（一个状态对同一字符可能有多个下一状态）
+2. <strong>$\varepsilon$ 转移</strong>：DFA 不允许有 $\varepsilon$ 状态转移，NFA 允许有 $\varepsilon$ 状态转移（状态转换图中可标记 $\varepsilon$ 的边）
+3. <strong>识别效率</strong>：DFA 识别速度快（不需要回溯），NFA 识别需要试探和回溯
+4. <strong>状态数量</strong>：等价的 DFA 通常比 NFA 有更多的状态（子集构造法可能导致状态数指数增长）
+5. <strong>表达能力</strong>：二者等价，都识别正规集（正规语言）</p>
+<div class="nav" style="margin-top:3rem;">
+  <a href="index.html">← 返回目录</a>
+  <strong>第一~二讲(1-3节)：引论与词法分析基础</strong> | <a href="02-词法分析器构造.html">第二讲(4-6节)：词法分析器的构造</a> | <a href="03-语法分析与自上而下分析.html">第三讲(1-2节)：语法分析基础与自上而下分析</a> | <a href="04-自下而上语法分析.html">第三讲(3-5节)：自下而上语法分析</a> | <a href="05-语法制导翻译与中间代码生成.html">第四讲：语法制导翻译与中间代码生成</a>
+</div>
+</body>
+</html>
